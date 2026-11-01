@@ -646,6 +646,18 @@ prixForm.reset();
 
 // Actualiser automatiquement la liste des prix
 await afficherListePrix();
+// Actualiser le coût de la recette après l'enregistrement d'un prix
+const boutonVerification = document.getElementById("verifierPrixRecette");
+
+if (boutonVerification) {
+    const ingredientsSaisis = document
+        .getElementById("ingredientsRecette")
+        ?.value.trim();
+
+    if (ingredientsSaisis) {
+        boutonVerification.click();
+    }
+}
 
         } catch (erreur) {
             console.error("Erreur d'enregistrement du prix :", erreur);
