@@ -183,57 +183,41 @@
 
 
         <!-- ========================= -->
-        <!-- CALCULATEUR DE PORTIONS -->
-        <!-- ========================= -->
+<!-- ========================= -->
+<!-- LE FRIGO DU CHEF -->
+<!-- ========================= -->
 
-        <section class="wrap tools" id="outils">
+<section class="wrap tools" id="outils">
 
-            <h2>Calculateur de portions</h2>
+    <h2>🧊 Le Frigo du Chef</h2>
 
-            <p>
-                Adapte facilement les quantités d'une recette
-                au nombre de personnes.
-            </p>
+    <p>
+        Tu ne sais pas quoi cuisiner ?
+        Indique les ingrédients que tu possèdes
+        et découvre les recettes que tu peux préparer !
+    </p>
 
-            <label for="quantity">
-                Quantité de départ (g)
-            </label>
+    <div class="frigo-recherche">
 
-            <input
-                type="number"
-                id="quantity"
-                min="0"
-                value="200"
-            >
+        <label for="ingredientsFrigo">
+            🥕 Quels ingrédients as-tu dans ton frigo ?
+        </label>
 
-            <label for="fromPortions">
-                Portions initiales
-            </label>
+        <input
+            type="text"
+            id="ingredientsFrigo"
+            placeholder="Exemple : œufs, lait, farine, beurre"
+        >
 
-            <input
-                type="number"
-                id="fromPortions"
-                min="1"
-                value="2"
-            >
+        <button type="button" id="chercherRecettes">
+            🔎 Trouver des recettes
+        </button>
 
-            <label for="toPortions">
-                Portions souhaitées
-            </label>
+    </div>
 
-            <input
-                type="number"
-                id="toPortions"
-                min="1"
-                value="4"
-            >
+    <div id="resultatsFrigo" aria-live="polite"></div>
 
-            <output
-                id="portionResult"
-                aria-live="polite"
-            ></output>
-
-        </section>
+</section>
 
     </main>
 

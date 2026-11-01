@@ -31,14 +31,15 @@ async function chargerRecettes() {
     const { data, error } = await publicSupabase
         .from("recettes")
         .select(`
-            id,
-            titre,
-            categorie,
-            description,
-            temps_preparation,
-            temps_cuisson,
-            image_url
-        `)
+    id,
+    titre,
+    categorie,
+    description,
+    ingredients,
+    temps_preparation,
+    temps_cuisson,
+    image_url
+`)
         .eq("publie", true)
         .order("date_creation", { ascending: false });
 
@@ -56,6 +57,7 @@ async function chargerRecettes() {
         title: recette.titre || "Recette sans titre",
         category: recette.categorie || "Autre",
         description: recette.description || "",
+        ingredients: recette.ingredients || [],
         preparation: recette.temps_preparation || 0,
         cuisson: recette.temps_cuisson || 0,
         image: recette.image_url || "images/creme.jpg"
@@ -167,48 +169,133 @@ searchForm.addEventListener("submit", event => {
     });
 });
 
-// 6. CALCULATEUR DE PORTIONS
+// ==========================================
+// LE FRIGO DU CHEF
+// Recherche de recettes par ingrédients
+// ==========================================
 
-function calculate() {
-    const quantite = Number(
-        document.getElementById("quantity").value
-    );
+const ingredientsFrigo = document.getElementById("ingredientsFrigo");
+const chercherRecettes = document.getElementById("chercherRecettes");
+const resultatsFrigo = document.getElementById("resultatsFrigo");
 
-    const portionsInitiales = Number(
-        document.getElementById("fromPortions").value
-    );
+// Simplifier les mots pour faciliter la comparaison
+function normaliserIngredient(texte) {
+    return String(texte)
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim();
+}
 
-    const portionsSouhaitees = Number(
-        document.getElementById("toPortions").value
-    );
+// Récupérer le nom d'un ingrédient
+function nomIngredient(ingredient) {
+    if (typeof ingredient === "string") {
+        return ingredient;
+    }
 
-    const resultat = document.getElementById("portionResult");
+    if (ingredient && typeof ingredient === "object") {
+        return ingredient.nom ||
+               ingredient.description ||
+               ingredient.texte ||
+               "";
+    }
 
-    if (
-        !Number.isFinite(quantite) ||
-        quantite < 0 ||
-        portionsInitiales <= 0 ||
-        portionsSouhaitees <= 0
-    ) {
-        resultat.textContent = "Entre des valeurs valides.";
+    return "";
+}
+
+// Rechercher les recettes
+function rechercherDansFrigo() {
+
+    resultatsFrigo.replaceChildren();
+
+    const ingredientsSaisis = ingredientsFrigo.value
+        .split(",")
+        .map(normaliserIngredient)
+        .filter(Boolean);
+
+    if (ingredientsSaisis.length === 0) {
+        resultatsFrigo.textContent =
+            "🥕 Indique au moins un ingrédient.";
         return;
     }
 
-    const quantiteAdaptee =
-        (quantite * portionsSouhaitees) / portionsInitiales;
+    const correspondances = recipes.map(recette => {
 
-    resultat.textContent =
-        "Quantité adaptée : " +
-        new Intl.NumberFormat("fr-FR", {
-            maximumFractionDigits: 1
-        }).format(quantiteAdaptee) +
-        " g";
+        const ingredientsRecette = recette.ingredients
+            .map(nomIngredient)
+            .map(normaliserIngredient)
+            .filter(Boolean);
+
+        const disponibles = ingredientsRecette.filter(ingredient =>
+            ingredientsSaisis.some(saisi =>
+                ingredient.includes(saisi)
+            )
+        );
+
+        const manquants = ingredientsRecette.filter(ingredient =>
+            !ingredientsSaisis.some(saisi =>
+                ingredient.includes(saisi)
+            )
+        );
+
+        return {
+            recette,
+            disponibles,
+            manquants
+        };
+
+    }).filter(resultat => resultat.disponibles.length > 0);
+
+    correspondances.sort((a, b) =>
+        b.disponibles.length - a.disponibles.length
+    );
+
+    if (correspondances.length === 0) {
+        resultatsFrigo.textContent =
+            "Aucune recette trouvée avec ces ingrédients.";
+        return;
+    }
+
+    correspondances.forEach(resultat => {
+
+        const carte = document.createElement("article");
+        carte.className = "frigo-carte";
+
+        const titre = document.createElement("h3");
+        titre.textContent = resultat.recette.title;
+
+        const disponibles = document.createElement("p");
+        disponibles.textContent =
+            `✅ ${resultat.disponibles.length} ingrédient(s) disponible(s)`;
+
+        const manquants = document.createElement("p");
+
+        manquants.textContent =
+            resultat.manquants.length === 0
+                ? "🎉 Tu as tous les ingrédients !"
+                : `🛒 Il manque : ${resultat.manquants.join(", ")}`;
+
+        const lien = document.createElement("a");
+        lien.className = "button";
+        lien.href =
+            `recette.html?id=${encodeURIComponent(resultat.recette.id)}`;
+        lien.textContent = "Voir la recette →";
+
+        carte.append(titre, disponibles, manquants, lien);
+        resultatsFrigo.appendChild(carte);
+
+    });
 }
 
-// 7. ÉVÉNEMENTS DU CALCULATEUR
+// Activer le bouton
+chercherRecettes.addEventListener("click", rechercherDansFrigo);
 
-document.querySelectorAll(".tools input").forEach(input => {
-    input.addEventListener("input", calculate);
+// Activer la touche Entrée
+ingredientsFrigo.addEventListener("keydown", event => {
+    if (event.key === "Enter") {
+        event.preventDefault();
+        rechercherDansFrigo();
+    }
 });
 
 // 8. ANNÉE AUTOMATIQUE
@@ -218,5 +305,4 @@ document.getElementById("year").textContent =
 
 // 9. INITIALISATION
 
-calculate();
 chargerRecettes();
