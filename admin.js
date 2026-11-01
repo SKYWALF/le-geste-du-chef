@@ -81,6 +81,7 @@ document.getElementById("fichierPhoto").value = "";
 
     // Vider le formulaire
     document.getElementById("recetteForm").reset();
+    afficherApercuPhoto("");
 
     // Changer le titre
     document.getElementById("titreFormulaire").textContent =
@@ -404,6 +405,8 @@ document.getElementById("fichierPhoto").value = "";
 
     document.getElementById("imageRecette").value =
         recette.image_url || "";
+        // Afficher la photo actuelle de la recette
+afficherApercuPhoto(recette.image_url || "");
 
     document.getElementById("publieRecette").checked =
         recette.publie === true;
@@ -478,3 +481,79 @@ async function envoyerPhoto() {
 
     return data.publicUrl;
 }
+// ==========================================
+// APERÇU DES PHOTOS
+// ==========================================
+
+const champFichierPhoto = document.getElementById("fichierPhoto");
+const champUrlPhoto = document.getElementById("imageRecette");
+const blocApercuPhoto = document.getElementById("apercuPhoto");
+const imageApercu = document.getElementById("imageApercu");
+
+let urlApercuTemporaire = null;
+
+// Afficher une image dans le formulaire
+function afficherApercuPhoto(url) {
+
+    if (urlApercuTemporaire) {
+        URL.revokeObjectURL(urlApercuTemporaire);
+        urlApercuTemporaire = null;
+    }
+
+    if (!url) {
+        imageApercu.removeAttribute("src");
+        blocApercuPhoto.style.display = "none";
+        return;
+    }
+
+    imageApercu.src = url;
+    blocApercuPhoto.style.display = "block";
+}
+
+// Quand on sélectionne une photo sur l'ordinateur
+champFichierPhoto.addEventListener("change", () => {
+
+    const fichier = champFichierPhoto.files[0];
+
+    if (!fichier) {
+        afficherApercuPhoto(champUrlPhoto.value.trim());
+        return;
+    }
+
+    const formatsAutorises = [
+        "image/jpeg",
+        "image/png",
+        "image/webp"
+    ];
+
+    if (!formatsAutorises.includes(fichier.type)) {
+        alert("Format non autorisé. Utilise JPG, PNG ou WebP.");
+        champFichierPhoto.value = "";
+        afficherApercuPhoto(champUrlPhoto.value.trim());
+        return;
+    }
+
+    if (fichier.size > 5 * 1024 * 1024) {
+        alert("La photo ne doit pas dépasser 5 Mo.");
+        champFichierPhoto.value = "";
+        afficherApercuPhoto(champUrlPhoto.value.trim());
+        return;
+    }
+
+    afficherApercuPhoto(URL.createObjectURL(fichier));
+    urlApercuTemporaire = imageApercu.src;
+});
+
+// Quand on modifie l'adresse URL
+champUrlPhoto.addEventListener("input", () => {
+
+    if (!champFichierPhoto.files.length) {
+        afficherApercuPhoto(champUrlPhoto.value.trim());
+    }
+
+});
+
+// Si l'image ne peut pas être chargée
+imageApercu.addEventListener("error", () => {
+    blocApercuPhoto.style.display = "none";
+});
