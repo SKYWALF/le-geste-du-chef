@@ -179,12 +179,39 @@ const chercherRecettes = document.getElementById("chercherRecettes");
 const resultatsFrigo = document.getElementById("resultatsFrigo");
 
 // Simplifier les mots pour faciliter la comparaison
+// ==========================================
+// RECONNAISSANCE INTELLIGENTE DES INGRÉDIENTS
+// ==========================================
+
 function normaliserIngredient(texte) {
-    return String(texte)
+
+    let resultat = String(texte)
         .toLowerCase()
+        .replace(/œ/g, "oe")
+        .replace(/æ/g, "ae")
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[’']/g, " ")
+        .replace(/\b\d+(?:[.,]\d+)?\b/g, " ")
+        .replace(/\b(kg|g|mg|l|cl|ml)\b/g, " ")
+        .replace(/\b(de|du|des|d|la|le|les)\b/g, " ")
+        .replace(/[^\p{L}\s]/gu, " ")
+        .replace(/\s+/g, " ")
         .trim();
+
+    // Supprimer les pluriels simples
+    resultat = resultat
+        .split(" ")
+        .map(mot => {
+            if (mot.length > 3 && mot.endsWith("s")) {
+                return mot.slice(0, -1);
+            }
+
+            return mot;
+        })
+        .join(" ");
+
+    return resultat;
 }
 
 // Récupérer le nom d'un ingrédient
@@ -202,7 +229,28 @@ function nomIngredient(ingredient) {
 
     return "";
 }
+// Comparer deux ingrédients plus précisément
+function ingredientsCorrespondent(ingredientRecette, ingredientFrigo) {
 
+    const recette = normaliserIngredient(ingredientRecette);
+    const frigo = normaliserIngredient(ingredientFrigo);
+
+    if (!recette || !frigo) {
+        return false;
+    }
+
+    // Correspondance exacte
+    if (recette === frigo) {
+        return true;
+    }
+
+    // Comparer les mots complets
+    const motsRecette = recette.split(" ");
+    const motsFrigo = frigo.split(" ");
+
+    return motsFrigo.every(mot => motsRecette.includes(mot)) &&
+           motsRecette.length === motsFrigo.length;
+}
 // Rechercher les recettes
 function rechercherDansFrigo() {
 
@@ -226,18 +274,17 @@ function rechercherDansFrigo() {
             .map(normaliserIngredient)
             .filter(Boolean);
 
-        const disponibles = ingredientsRecette.filter(ingredient =>
-            ingredientsSaisis.some(saisi =>
-                ingredient.includes(saisi)
-            )
-        );
+  const disponibles = ingredientsRecette.filter(ingredient =>
+    ingredientsSaisis.some(saisi =>
+        ingredientsCorrespondent(ingredient, saisi)
+    )
+);
 
-        const manquants = ingredientsRecette.filter(ingredient =>
-            !ingredientsSaisis.some(saisi =>
-                ingredient.includes(saisi)
-            )
-        );
-
+const manquants = ingredientsRecette.filter(ingredient =>
+    !ingredientsSaisis.some(saisi =>
+        ingredientsCorrespondent(ingredient, saisi)
+    )
+);
         return {
             recette,
             disponibles,
