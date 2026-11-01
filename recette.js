@@ -399,6 +399,46 @@ async function chargerPrixIngredients() {
 // ==========================================
 
 function calculerPrixIngredient(ingredient, prixIngredients) {
+        // ==========================================
+    // RECONNAÎTRE LES ŒUFS ET LES JAUNES D'ŒUFS
+    // ==========================================
+
+    let nomIngredient = "";
+
+    if (typeof ingredient === "string") {
+        nomIngredient = ingredient;
+    } else if (ingredient && typeof ingredient === "object") {
+        nomIngredient = [
+            ingredient.quantite,
+            ingredient.unite,
+            ingredient.nom
+        ].filter(valeur => valeur != null).join(" ");
+    }
+
+    const texteOeuf = nomIngredient
+        .toLowerCase()
+        .trim()
+        .replace(/œ/g, "oe")
+        .replace(/’/g, "'");
+
+    const correspondanceOeuf = texteOeuf.match(
+        /^(\d+(?:[.,]\d+)?)\s+(?:(?:jaunes?|blancs?)\s+d[' ]?)?oeufs?$/
+    );
+
+    if (correspondanceOeuf) {
+
+        const quantite = Number(
+            correspondanceOeuf[1].replace(",", ".")
+        );
+
+        const prixOeuf = prixIngredients.find(
+            p => p.ingredient.toLowerCase().trim() === "oeuf"
+        );
+
+        if (prixOeuf && prixOeuf.unite.toLowerCase().trim() === "unité") {
+            return quantite * Number(prixOeuf.prix_unitaire);
+        }
+    }
 
     let texte = "";
 
