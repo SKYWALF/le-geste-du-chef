@@ -557,3 +557,23 @@ champUrlPhoto.addEventListener("input", () => {
 imageApercu.addEventListener("error", () => {
     blocApercuPhoto.style.display = "none";
 });
+// =====================================
+// OUVRIR / FERMER LA GESTION DES PRIX
+// =====================================
+
+const boutonGererPrix = document.getElementById("gererPrix");
+const formulairePrix = document.getElementById("formulairePrix");
+
+if (boutonGererPrix && formulairePrix) {
+    boutonGererPrix.addEventListener("click", () => {
+
+        const estFerme = formulairePrix.style.display === "none";
+
+        formulairePrix.style.display = estFerme ? "block" : "none";
+
+        boutonGererPrix.textContent = estFerme
+            ? "❌ Fermer la gestion des prix"
+            : "💰 Gérer les prix";
+
+    });
+}

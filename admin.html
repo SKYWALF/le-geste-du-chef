@@ -384,6 +384,91 @@
         <button type="button" id="ajouterRecette">
             + Ajouter une recette
         </button>
+        <!-- ==============================
+     GESTION DES PRIX
+============================== -->
+
+<hr>
+
+<h3>💰 Gestion des prix des ingrédients</h3>
+
+<p>
+    Ajoute ou modifie les prix de tes ingrédients.
+    Ils seront réutilisés automatiquement dans tes recettes.
+</p>
+
+<button type="button" id="gererPrix">
+    💰 Gérer les prix
+</button>
+<!-- FORMULAIRE DE GESTION DES PRIX -->
+
+<div id="formulairePrix" style="
+    display:none;
+    margin-top:25px;
+    padding:25px;
+    background:#fcfbf8;
+    border:1px solid #e8e0d2;
+    border-radius:10px;
+">
+
+    <h3>💰 Ajouter ou modifier un prix</h3>
+
+    <form id="prixForm">
+
+        <label for="nomIngredient">
+            Nom de l'ingrédient
+        </label>
+
+        <input
+            type="text"
+            id="nomIngredient"
+            placeholder="Exemple : farine"
+            required
+        >
+
+        <label for="prixIngredient">
+            Prix en euros
+        </label>
+
+        <input
+            type="number"
+            id="prixIngredient"
+            min="0"
+            step="0.0001"
+            placeholder="Exemple : 1.59"
+            required
+        >
+
+        <label for="uniteIngredient">
+            Prix pour quelle unité ?
+        </label>
+
+        <select id="uniteIngredient" required>
+            <option value="kg">1 kilogramme (kg)</option>
+            <option value="L">1 litre (L)</option>
+            <option value="unité">1 pièce (unité)</option>
+            <option value="gousse">1 gousse</option>
+        </select>
+
+        <label for="sourceIngredient">
+            Magasin ou fournisseur
+        </label>
+
+        <input
+            type="text"
+            id="sourceIngredient"
+            placeholder="Exemple : E.Leclerc Drive"
+        >
+
+        <button type="submit" id="enregistrerPrix">
+            💾 Enregistrer le prix
+        </button>
+
+    </form>
+
+    <p id="messagePrix" role="status"></p>
+
+</div>
 
 
         <!-- ==============================
