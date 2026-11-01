@@ -1,0 +1,202 @@
+/* ===== COULEURS DU SITE ===== */
+
+:root {
+    --or: #b8860b;
+    --noir: #1c1c1c;
+    --blanc: #ffffff;
+    --creme: #faf8f4;
+    --gris: #777777;
+}
+
+/* ===== STYLE GÉNÉRAL ===== */
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: var(--creme);
+    color: var(--noir);
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* ===== EN-TÊTE ===== */
+
+header {
+    background: var(--blanc);
+    padding: 25px 5%;
+    text-align: center;
+    border-bottom: 1px solid #eeeeee;
+}
+
+header h1 {
+    font-family: Georgia, serif;
+    font-style: italic;
+    font-size: 45px;
+    margin: 0;
+}
+
+.slogan {
+    color: var(--gris);
+    font-size: 15px;
+    margin-top: 10px;
+}
+
+/* ===== MENU ===== */
+
+nav {
+    background: var(--blanc);
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 30px;
+    padding: 20px;
+    border-bottom: 1px solid #eeeeee;
+}
+
+nav a {
+    font-weight: bold;
+    transition: color 0.3s;
+}
+
+nav a:hover {
+    color: var(--or);
+}
+
+/* ===== PAGE D'ACCUEIL ===== */
+
+.hero {
+    min-height: 450px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 80px 20px;
+    background: linear-gradient(
+        135deg,
+        #ffffff,
+        #f3eee4
+    );
+}
+
+.hero h2 {
+    font-family: Georgia, serif;
+    font-size: 42px;
+    margin-bottom: 15px;
+}
+
+.hero p {
+    font-size: 18px;
+    color: #555555;
+    max-width: 650px;
+    line-height: 1.7;
+}
+
+/* ===== BOUTONS ===== */
+
+.btn {
+    display: inline-block;
+    background: var(--or);
+    color: white;
+    padding: 15px 30px;
+    border-radius: 8px;
+    font-weight: bold;
+    margin-top: 20px;
+    transition: 0.3s;
+}
+
+.btn:hover {
+    background: #916a08;
+    transform: translateY(-2px);
+}
+
+/* ===== CARTES RECETTES ===== */
+
+.recettes {
+    max-width: 1300px;
+    margin: auto;
+    padding: 60px 20px;
+}
+
+.recettes h2 {
+    font-family: Georgia, serif;
+    font-size: 32px;
+}
+
+.grille-recettes {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+}
+
+.carte-recette {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    transition: 0.3s;
+}
+
+.carte-recette:hover {
+    transform: translateY(-5px);
+}
+
+.carte-recette img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+}
+
+.carte-recette h3 {
+    padding: 0 20px;
+}
+
+.carte-recette p {
+    padding: 0 20px 20px;
+    color: var(--gris);
+}
+
+/* ===== PIED DE PAGE ===== */
+
+footer {
+    background: var(--noir);
+    color: white;
+    text-align: center;
+    padding: 35px;
+}
+
+/* ===== VERSION MOBILE ===== */
+
+@media (max-width: 768px) {
+
+    header h1 {
+        font-size: 32px;
+    }
+
+    nav {
+        gap: 15px;
+    }
+
+    .hero h2 {
+        font-size: 30px;
+    }
+
+    .hero p {
+        font-size: 16px;
+    }
+
+    .grille-recettes {
+        grid-template-columns: 1fr;
+    }
+}
