@@ -131,7 +131,31 @@
     <p style="text-align:center">
         <a href="index.html">← Retour au site</a>
     </p>
+<section id="dashboard" style="display:none; max-width:900px; margin:40px auto; padding:30px; background:white; border-radius:12px;">
 
+    <h2>Tableau de bord administrateur</h2>
+
+    <p>Bienvenue dans ton espace de gestion des recettes.</p>
+
+    <hr>
+
+    <h3>🍽️ Gestion des recettes</h3>
+
+    <button type="button" id="ajouterRecette">
+        + Ajouter une recette
+    </button>
+
+    <div id="listeRecettes">
+        <p>Tes recettes apparaîtront ici.</p>
+    </div>
+
+    <hr>
+
+    <button type="button" id="deconnexion">
+        Se déconnecter
+    </button>
+
+</section>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="admin.js"></script>

@@ -44,5 +44,26 @@ loginForm.addEventListener("submit", async (event) => {
         return;
     }
 
-    message.textContent = "Connexion administrateur réussie !";
+    // Connexion réussie : afficher le tableau de bord
+message.textContent = "";
+
+document.querySelector(".container").style.display = "none";
+document.getElementById("dashboard").style.display = "block";
+});
+// Déconnexion administrateur
+document.getElementById("deconnexion").addEventListener("click", async () => {
+
+    const { error } = await supabaseClient.auth.signOut();
+
+    if (error) {
+        alert("Erreur lors de la déconnexion : " + error.message);
+        return;
+    }
+
+    document.getElementById("dashboard").style.display = "none";
+    document.querySelector(".container").style.display = "block";
+
+    document.getElementById("loginForm").reset();
+
+    message.textContent = "Vous êtes déconnecté.";
 });
