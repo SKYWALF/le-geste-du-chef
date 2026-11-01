@@ -493,17 +493,31 @@
                 ></textarea>
 
 
-                <!-- Photo -->
+             <!-- Photo de la recette -->
 
-                <label for="imageRecette">
-                    📸 Adresse de la photo (URL)
-                </label>
+<label for="fichierPhoto">
+    📸 Choisir une photo sur mon ordinateur
+</label>
 
-                <input
-                    type="url"
-                    id="imageRecette"
-                    placeholder="https://exemple.fr/photo.jpg"
-                >
+<input
+    type="file"
+    id="fichierPhoto"
+    accept="image/jpeg,image/png,image/webp"
+>
+
+<p style="font-size:13px; color:#777;">
+    Formats acceptés : JPG, PNG, WebP — 5 Mo maximum.
+</p>
+
+<label for="imageRecette">
+    🔗 Ou utiliser une adresse de photo (URL)
+</label>
+
+<input
+    type="url"
+    id="imageRecette"
+    placeholder="https://exemple.fr/photo.jpg"
+>
 
 
                 <!-- Publication -->

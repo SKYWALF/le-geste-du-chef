@@ -73,6 +73,11 @@ document.getElementById("ajouterRecette").addEventListener("click", () => {
 
     // Quitter le mode modification
     recetteEnModification = null;
+    // Réinitialiser les photos
+anciennePhotoRecette = null;
+document.getElementById("fichierPhoto").value = "";
+    document.getElementById("enregistrerRecette").textContent =
+    "➕ Enregistrer la recette";
 
     // Vider le formulaire
     document.getElementById("recetteForm").reset();
@@ -120,9 +125,32 @@ document.getElementById("recetteForm").addEventListener("submit", async (event) 
         portions: Number(document.getElementById("portionsRecette").value),
         ingredients: lireLignes("ingredientsRecette"),
         etapes: lireLignes("etapesRecette"),
-        image_url: document.getElementById("imageRecette").value.trim() || null,
+  image_url: null,
         publie: document.getElementById("publieRecette").checked
     };
+    // Envoyer la photo vers Supabase Storage
+try {
+    const fichier = document.getElementById("fichierPhoto").files[0];
+    const urlSaisie = document.getElementById("imageRecette").value.trim();
+
+    if (fichier) {
+        // Nouvelle photo sélectionnée
+        recette.image_url = await envoyerPhoto();
+    } else if (urlSaisie) {
+        // Adresse URL renseignée
+        recette.image_url = urlSaisie;
+    } else {
+        // Conserver l'ancienne photo en cas de modification
+        recette.image_url = recetteEnModification
+            ? anciennePhotoRecette
+            : null;
+    }
+
+} catch (erreur) {
+    messageRecette.textContent = "❌ " + erreur.message;
+    bouton.disabled = false;
+    return;
+}
 
     // Vérifier si nous ajoutons ou modifions une recette
 const modification = recetteEnModification !== null;
@@ -317,6 +345,7 @@ boutonSupprimer.addEventListener("click", async () => {
 
 // Identifiant de la recette en cours de modification
 let recetteEnModification = null;
+let anciennePhotoRecette = null;
 
 // Charger une recette dans le formulaire
 async function modifierRecette(id) {
@@ -334,6 +363,11 @@ async function modifierRecette(id) {
 
     // Conserver l'identifiant pour l'enregistrement
     recetteEnModification = recette.id;
+    anciennePhotoRecette = recette.image_url || null;
+    // Effacer la sélection d'une ancienne photo
+document.getElementById("fichierPhoto").value = "";
+    document.getElementById("enregistrerRecette").textContent =
+    "💾 Enregistrer les modifications";
     document.getElementById("titreFormulaire").textContent =
     "✏️ Modifier la recette";
 
@@ -386,4 +420,61 @@ async function modifierRecette(id) {
         behavior: "smooth",
         block: "start"
     });
+}
+// ==========================================
+// IMPORTATION DES PHOTOS VERS SUPABASE
+// ==========================================
+
+async function envoyerPhoto() {
+    const champPhoto = document.getElementById("fichierPhoto");
+    const fichier = champPhoto.files[0];
+
+    // Aucune photo sélectionnée
+    if (!fichier) {
+        return document.getElementById("imageRecette").value.trim() || null;
+    }
+
+    // Vérifier le format
+    const formatsAutorises = [
+        "image/jpeg",
+        "image/png",
+        "image/webp"
+    ];
+
+    if (!formatsAutorises.includes(fichier.type)) {
+        throw new Error("Format non autorisé. Utilise JPG, PNG ou WebP.");
+    }
+
+    // Vérifier la taille (5 Mo maximum)
+    if (fichier.size > 5 * 1024 * 1024) {
+        throw new Error("La photo dépasse 5 Mo.");
+    }
+
+    // Créer un nom unique
+    const extension = {
+        "image/jpeg": "jpg",
+        "image/png": "png",
+        "image/webp": "webp"
+    }[fichier.type];
+
+    const nomFichier = `${crypto.randomUUID()}.${extension}`;
+
+    // Envoyer la photo
+    const { error } = await supabaseClient.storage
+        .from("photos-recettes")
+        .upload(nomFichier, fichier, {
+            contentType: fichier.type,
+            upsert: false
+        });
+
+    if (error) {
+        throw new Error("Erreur d'envoi : " + error.message);
+    }
+
+    // Récupérer son adresse publique
+    const { data } = supabaseClient.storage
+        .from("photos-recettes")
+        .getPublicUrl(nomFichier);
+
+    return data.publicUrl;
 }
