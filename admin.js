@@ -577,3 +577,81 @@ if (boutonGererPrix && formulairePrix) {
 
     });
 }
+// =====================================
+// ENREGISTRER LES PRIX DES INGRÉDIENTS
+// =====================================
+
+const prixForm = document.getElementById("prixForm");
+
+if (prixForm) {
+    prixForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const messagePrix = document.getElementById("messagePrix");
+        const boutonEnregistrer = document.getElementById("enregistrerPrix");
+
+        const ingredient = document
+            .getElementById("nomIngredient")
+            .value.trim().toLowerCase();
+
+        const prix = Number(
+            document.getElementById("prixIngredient").value
+        );
+
+        const unite = document.getElementById("uniteIngredient").value;
+
+        const source = document
+            .getElementById("sourceIngredient")
+            .value.trim();
+
+        if (!ingredient || !Number.isFinite(prix) || prix < 0) {
+            messagePrix.textContent = "❌ Vérifie le nom et le prix.";
+            return;
+        }
+
+        boutonEnregistrer.disabled = true;
+        messagePrix.textContent = "⏳ Enregistrement en cours...";
+
+        try {
+            const { data: sessionData, error: sessionError } =
+                await supabaseClient.auth.getUser();
+
+            if (sessionError || !sessionData.user) {
+                throw new Error("Tu dois être connecté.");
+            }
+
+            const { error } = await supabaseClient
+                .from("prix_ingredients")
+                .upsert(
+                    {
+                        ingredient: ingredient,
+                        prix_unitaire: prix,
+                        unite: unite,
+                        source: source || "Prix renseigné manuellement",
+                        date_actualisation: new Date().toISOString()
+                    },
+                    {
+                        onConflict: "ingredient"
+                    }
+                );
+
+            if (error) {
+                throw error;
+            }
+
+            messagePrix.textContent =
+                "✅ Prix enregistré avec succès !";
+
+            prixForm.reset();
+
+        } catch (erreur) {
+            console.error("Erreur d'enregistrement du prix :", erreur);
+
+            messagePrix.textContent =
+                "❌ Erreur : " + erreur.message;
+
+        } finally {
+            boutonEnregistrer.disabled = false;
+        }
+    });
+}
