@@ -533,3 +533,5 @@ if (unite === "gousse" || unite === "gousses") {
 // 8. DÉMARRAGE
 
 chargerRecette();
+// Rendre le calculateur disponible pour l'administration
+window.calculerPrixIngredient = calculerPrixIngredient;
