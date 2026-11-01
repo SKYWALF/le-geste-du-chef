@@ -70,12 +70,29 @@ document.getElementById("deconnexion").addEventListener("click", async () => {
 });
 // Afficher ou masquer le formulaire de recette
 document.getElementById("ajouterRecette").addEventListener("click", () => {
+
+    // Quitter le mode modification
+    recetteEnModification = null;
+
+    // Vider le formulaire
+    document.getElementById("recetteForm").reset();
+
+    // Changer le titre
+    document.getElementById("titreFormulaire").textContent =
+        "➕ Nouvelle recette";
+
+    // Effacer les anciens messages
+    document.getElementById("messageRecette").textContent = "";
+
+    // Afficher le formulaire
     const formulaire = document.getElementById("formulaireRecette");
+    formulaire.style.display = "block";
 
-    formulaire.style.display =
-        formulaire.style.display === "none" ? "block" : "none";
+    formulaire.scrollIntoView({
+        behavior: "smooth"
+    });
+
 });
-
 // Enregistrer une recette dans Supabase
 document.getElementById("recetteForm").addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -107,22 +124,58 @@ document.getElementById("recetteForm").addEventListener("submit", async (event) 
         publie: document.getElementById("publieRecette").checked
     };
 
-    const { error } = await supabaseClient
+    // Vérifier si nous ajoutons ou modifions une recette
+const modification = recetteEnModification !== null;
+
+let resultat;
+
+if (modification) {
+
+    // Modifier la recette existante
+    resultat = await supabaseClient
         .from("recettes")
-        .insert([recette]);
+        .update(recette)
+        .eq("id", recetteEnModification)
+        .select("id");
 
-    bouton.disabled = false;
+} else {
 
-    if (error) {
-        messageRecette.textContent =
-            "Erreur lors de l'enregistrement : " + error.message;
-        return;
-    }
+    // Ajouter une nouvelle recette
+    resultat = await supabaseClient
+        .from("recettes")
+        .insert([recette])
+        .select("id");
 
-    messageRecette.textContent = "✅ Recette enregistrée avec succès !";
-    await afficherRecettes();
+}
 
-    document.getElementById("recetteForm").reset();
+bouton.disabled = false;
+
+// Vérifier le résultat
+if (
+    resultat.error ||
+    !resultat.data ||
+    resultat.data.length !== 1
+) {
+    messageRecette.textContent =
+        "❌ Erreur : " +
+        (resultat.error?.message || "Enregistrement non autorisé.");
+
+    return;
+}
+
+// Afficher le message de confirmation
+messageRecette.textContent = modification
+    ? "✅ Recette modifiée avec succès !"
+    : "✅ Recette ajoutée avec succès !";
+
+// Quitter le mode modification
+recetteEnModification = null;
+
+// Vider le formulaire
+document.getElementById("recetteForm").reset();
+
+// Actualiser la liste
+await afficherRecettes();
 });
 // Afficher les recettes enregistrées dans Supabase
 async function afficherRecettes() {
@@ -175,7 +228,7 @@ boutonModifier.textContent = "✏️ Modifier";
 boutonModifier.style.marginBottom = "10px";
 
 boutonModifier.addEventListener("click", () => {
-    alert("Nous allons bientôt activer la modification des recettes.");
+    modifierRecette(recette.id);
 });
 
 // Bouton Publier / Dépublier
@@ -256,5 +309,81 @@ boutonSupprimer.addEventListener("click", async () => {
     boutonSupprimer
 );
         liste.appendChild(carte);
+    });
+}
+// ==========================================
+// MODIFIER UNE RECETTE
+// ==========================================
+
+// Identifiant de la recette en cours de modification
+let recetteEnModification = null;
+
+// Charger une recette dans le formulaire
+async function modifierRecette(id) {
+
+    const { data: recette, error } = await supabaseClient
+        .from("recettes")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+    if (error || !recette) {
+        alert("Impossible de charger cette recette.");
+        return;
+    }
+
+    // Conserver l'identifiant pour l'enregistrement
+    recetteEnModification = recette.id;
+    document.getElementById("titreFormulaire").textContent =
+    "✏️ Modifier la recette";
+
+    // Remplir le formulaire
+    document.getElementById("titreRecette").value =
+        recette.titre || "";
+
+    document.getElementById("categorieRecette").value =
+        recette.categorie || "";
+
+    document.getElementById("descriptionRecette").value =
+        recette.description || "";
+
+    document.getElementById("preparationRecette").value =
+        recette.temps_preparation ?? 0;
+
+    document.getElementById("cuissonRecette").value =
+        recette.temps_cuisson ?? 0;
+
+    document.getElementById("portionsRecette").value =
+        recette.portions ?? 1;
+
+    // Une ligne par ingrédient
+    document.getElementById("ingredientsRecette").value =
+        Array.isArray(recette.ingredients)
+            ? recette.ingredients.join("\n")
+            : "";
+
+    // Une ligne par étape
+    document.getElementById("etapesRecette").value =
+        Array.isArray(recette.etapes)
+            ? recette.etapes.join("\n")
+            : "";
+
+    document.getElementById("imageRecette").value =
+        recette.image_url || "";
+
+    document.getElementById("publieRecette").checked =
+        recette.publie === true;
+
+    // Afficher le formulaire
+    const formulaire = document.getElementById("formulaireRecette");
+    formulaire.style.display = "block";
+
+    document.getElementById("messageRecette").textContent =
+        "✏️ Modification de : " + recette.titre;
+
+    // Remonter jusqu'au formulaire
+    formulaire.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
     });
 }
