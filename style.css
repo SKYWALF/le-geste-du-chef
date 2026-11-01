@@ -93,11 +93,20 @@ nav{display:flex;justify-content:center;gap:45px;padding:16px;background:white;b
     }
 }
 /* Affichage des recettes sur 3 colonnes */
+/* Affichage de la recette sur 3 colonnes */
 .recette-contenu {
     display: grid;
-    grid-template-columns: 1fr 2fr 1fr;
-    gap: 30px;
+    grid-template-columns: minmax(220px, 1fr) minmax(400px, 2fr) minmax(220px, 1fr);
+    gap: 25px;
     align-items: start;
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Empêcher les colonnes de devenir trop étroites */
+.recette-contenu > section {
+    min-width: 0;
 }
 
 /* Placement du coût estimé à droite */
