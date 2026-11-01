@@ -779,3 +779,83 @@ if (boutonGererPrix) {
 
     });
 }
+// =====================================
+// VÉRIFIER LES PRIX D'UNE RECETTE
+// =====================================
+
+const boutonVerifierPrix = document.getElementById("verifierPrixRecette");
+const resultatVerification = document.getElementById("resultatVerificationPrix");
+
+if (boutonVerifierPrix && resultatVerification) {
+
+    boutonVerifierPrix.addEventListener("click", async () => {
+
+        const texte = document.getElementById("ingredientsRecette").value;
+
+        const ingredients = texte
+            .split("\n")
+            .map(ligne => ligne.trim())
+            .filter(ligne => ligne.length > 0);
+
+        resultatVerification.style.display = "block";
+        resultatVerification.textContent = "⏳ Vérification des prix...";
+
+        if (ingredients.length === 0) {
+            resultatVerification.textContent =
+                "⚠️ Ajoute d'abord des ingrédients.";
+            return;
+        }
+
+        try {
+            const { data, error } = await supabaseClient
+                .from("prix_ingredients")
+                .select("ingredient, prix_unitaire, unite");
+
+            if (error) throw error;
+
+            let total = 0;
+            let reconnus = 0;
+            const lignes = [];
+
+            ingredients.forEach(ingredient => {
+
+                const cout = window.calculerPrixIngredient(
+                    ingredient,
+                    data || []
+                );
+
+                if (cout !== null && Number.isFinite(cout)) {
+                    total += cout;
+                    reconnus++;
+
+                    lignes.push(
+                        `✅ ${ingredient} : ${cout.toFixed(2)} €`
+                    );
+                } else {
+                    lignes.push(
+                        `⚠️ ${ingredient} : prix manquant ou ingrédient non reconnu`
+                    );
+                }
+            });
+
+            const euros = montant => montant.toLocaleString("fr-FR", {
+                style: "currency",
+                currency: "EUR"
+            });
+
+            resultatVerification.textContent =
+                lignes.join("\n") +
+                `\n\n💰 Coût connu : ${euros(total)}` +
+                `\n📊 ${reconnus}/${ingredients.length} ingrédients calculés`;
+
+            resultatVerification.style.whiteSpace = "pre-line";
+
+        } catch (erreur) {
+            console.error(erreur);
+
+            resultatVerification.textContent =
+                "❌ Erreur : " + erreur.message;
+        }
+
+    });
+}
