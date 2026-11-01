@@ -168,8 +168,93 @@ async function afficherRecettes() {
         statut.textContent = recette.publie
             ? "🟢 Publiée"
             : "🟠 Brouillon";
+// Bouton Modifier
+const boutonModifier = document.createElement("button");
+boutonModifier.type = "button";
+boutonModifier.textContent = "✏️ Modifier";
+boutonModifier.style.marginBottom = "10px";
 
-        carte.append(titre, categorie, statut);
+boutonModifier.addEventListener("click", () => {
+    alert("Nous allons bientôt activer la modification des recettes.");
+});
+
+// Bouton Publier / Dépublier
+const boutonPublier = document.createElement("button");
+boutonPublier.type = "button";
+boutonPublier.textContent = recette.publie
+    ? "🔒 Dépublier"
+    : "🌐 Publier";
+
+boutonPublier.style.marginBottom = "10px";
+
+boutonPublier.addEventListener("click", async () => {
+    const confirmation = confirm(
+        recette.publie
+            ? "Voulez-vous dépublier cette recette ?"
+            : "Voulez-vous publier cette recette ?"
+    );
+
+    if (!confirmation) return;
+
+    boutonPublier.disabled = true;
+
+    const { data, error } = await supabaseClient
+        .from("recettes")
+        .update({ publie: !recette.publie })
+        .eq("id", recette.id)
+        .select("id");
+
+    if (error || !data || data.length !== 1) {
+        alert(
+            "Impossible de modifier la publication : " +
+            (error?.message || "Modification non autorisée.")
+        );
+        boutonPublier.disabled = false;
+        return;
+    }
+
+    await afficherRecettes();
+});
+
+// Bouton Supprimer
+const boutonSupprimer = document.createElement("button");
+boutonSupprimer.type = "button";
+boutonSupprimer.textContent = "🗑️ Supprimer";
+
+boutonSupprimer.addEventListener("click", async () => {
+    const confirmation = confirm(
+        `Voulez-vous vraiment supprimer "${recette.titre}" ?`
+    );
+
+    if (!confirmation) return;
+
+    boutonSupprimer.disabled = true;
+
+    const { data, error } = await supabaseClient
+        .from("recettes")
+        .delete()
+        .eq("id", recette.id)
+        .select("id");
+
+    if (error || !data || data.length !== 1) {
+        alert(
+            "Impossible de supprimer la recette : " +
+            (error?.message || "Suppression non autorisée.")
+        );
+        boutonSupprimer.disabled = false;
+        return;
+    }
+
+    await afficherRecettes();
+});
+        carte.append(
+    titre,
+    categorie,
+    statut,
+    boutonModifier,
+    boutonPublier,
+    boutonSupprimer
+);
         liste.appendChild(carte);
     });
 }
