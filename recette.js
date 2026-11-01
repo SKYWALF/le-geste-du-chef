@@ -270,6 +270,83 @@ nombrePortions.addEventListener("input", () => {
     // Garder la référence vers la nouvelle liste
     listeIngredients = blocIngredients.querySelector("ul");
 });
+// ==========================================
+// AFFICHAGE DU COÛT DE LA RECETTE
+// ==========================================
+
+const blocPrix = document.createElement("section");
+blocPrix.className = "bloc-prix";
+
+const titrePrix = creerElement(
+    "h2",
+    "💰 Coût estimé de la recette"
+);
+
+const resultatPrix = creerElement(
+    "p",
+    "Chargement des prix..."
+);
+
+blocPrix.append(titrePrix, resultatPrix);
+
+// Charger les prix depuis Supabase
+const prixIngredients = await chargerPrixIngredients();
+
+function actualiserPrix() {
+
+    const portions = Number(nombrePortions.value);
+
+    if (!Number.isInteger(portions) || portions < 1 || portions > 100) {
+        return;
+    }
+
+    const coefficient = portions / portionsOriginales;
+
+    let total = 0;
+    let ingredientsConnus = 0;
+
+    const ingredients = Array.isArray(recette.ingredients)
+        ? recette.ingredients
+        : [];
+
+    ingredients.forEach(ingredient => {
+
+        const prix = calculerPrixIngredient(
+            ingredient,
+            prixIngredients
+        );
+
+        if (prix !== null && Number.isFinite(prix)) {
+            total += prix * coefficient;
+            ingredientsConnus++;
+        }
+    });
+
+    if (ingredientsConnus === 0) {
+        resultatPrix.textContent =
+            "Prix indisponible : aucun ingrédient reconnu.";
+        return;
+    }
+
+    const euros = montant => montant.toLocaleString(
+        "fr-FR",
+        {
+            style: "currency",
+            currency: "EUR"
+        }
+    );
+
+    resultatPrix.textContent =
+        `Coût connu : ${euros(total)} | ` +
+        `Par personne : ${euros(total / portions)} ` +
+        `(${ingredientsConnus}/${ingredients.length} ingrédients calculés)`;
+}
+
+// Actualiser lorsque le nombre de personnes change
+nombrePortions.addEventListener("input", actualiserPrix);
+
+// Premier calcul
+actualiserPrix();
     // PRÉPARATION
 
     const blocPreparation = document.createElement("section");
@@ -284,7 +361,7 @@ nombrePortions.addEventListener("input", () => {
 
     // ASSEMBLAGE
 
-    contenu.append(blocIngredients, blocPreparation);
+  contenu.append(blocIngredients, blocPrix, blocPreparation);
 
     recetteDetail.append(
         photo,
@@ -295,7 +372,85 @@ nombrePortions.addEventListener("input", () => {
     contenu
     );
 }
+// ==========================================
+// RÉCUPÉRATION DES PRIX DES INGRÉDIENTS
+// ==========================================
 
+async function chargerPrixIngredients() {
+
+    const { data, error } = await supabaseClient
+        .from("prix_ingredients")
+        .select("ingredient, prix_unitaire, unite, source");
+
+    if (error) {
+        console.error("Erreur de récupération des prix :", error.message);
+        return [];
+    }
+
+    return data || [];
+
+}
+// ==========================================
+// CALCUL DU PRIX D'UN INGRÉDIENT
+// ==========================================
+
+function calculerPrixIngredient(ingredient, prixIngredients) {
+
+    let texte = "";
+
+    if (typeof ingredient === "string") {
+        texte = ingredient;
+    } else if (ingredient && typeof ingredient === "object") {
+        texte = [
+            ingredient.quantite,
+            ingredient.unite,
+            ingredient.nom
+        ].filter(valeur => valeur != null).join(" ");
+    }
+
+    // Exemple : "500 ml de lait demi-écrémé"
+    const resultat = texte.trim().match(
+        /^(\d+(?:[.,]\d+)?)\s*(ml|cl|l)\s+(?:de\s+|du\s+|d['’])?(.*)$/i
+    );
+
+    if (!resultat) {
+        return null;
+    }
+
+    const quantite = Number(resultat[1].replace(",", "."));
+    const unite = resultat[2].toLowerCase();
+
+    const nom = resultat[3]
+        .toLowerCase()
+        .trim()
+        .replace(/^de\s+|^du\s+|^d['’]/, "");
+
+    // Rechercher un prix correspondant dans Supabase
+    const prix = prixIngredients.find(p =>
+        p.ingredient.toLowerCase().trim() === nom
+    );
+
+    if (!prix) {
+        return null;
+    }
+
+    // Pour l'instant, calculer uniquement les liquides
+    if (prix.unite.toLowerCase() !== "l") {
+        return null;
+    }
+
+    let quantiteLitres = quantite;
+
+    if (unite === "ml") {
+        quantiteLitres = quantite / 1000;
+    }
+
+    if (unite === "cl") {
+        quantiteLitres = quantite / 100;
+    }
+
+    return quantiteLitres * Number(prix.prix_unitaire);
+}
 // 8. DÉMARRAGE
 
 chargerRecette();
