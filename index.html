@@ -1,23 +1,269 @@
-<!doctype html>
-<!-- Test de déploiement Cloudflare -->
+```html
+<!DOCTYPE html>
 <html lang="fr">
+
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="Le Geste du Chef : recettes, techniques culinaires et astuces accessibles à tous.">
-<title>Le Geste du Chef — Recettes & techniques</title>
-<link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="description"
+        content="Le Geste du Chef : découvrez des recettes, des techniques culinaires et des astuces pour cuisiner comme un chef."
+    >
+
+    <title>Le Geste du Chef | Recettes & Techniques</title>
+
+    <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-<header class="top"><a class="logo" href="index.html">♨ Le Geste du Chef <small>RECETTES · TECHNIQUES · ASTUCES</small></a>
-<form id="searchForm" role="search"><input id="search" type="search" placeholder="Rechercher une recette…" aria-label="Rechercher une recette"><button>Rechercher</button></form></header>
-<nav aria-label="Navigation principale"><a href="#recettes">Recettes</a><a href="#techniques">Techniques</a><a href="#budget">Petit budget</a><a href="#outils">Outils</a></nav>
-<main>
-<section class="hero"><div class="heroText"><p class="eyebrow">BIENVENUE DANS NOTRE CUISINE</p><h1>Le Geste du Chef</h1><p class="tagline">La cuisine s'apprend, le goût se partage.</p><p>Des recettes accessibles, des techniques de chef et des conseils pour cuisiner avec plaisir.</p><a class="button" href="#recettes">Découvrir les recettes →</a></div><img src="images/hero.jpg" alt="Plat cuisiné dressé avec soin"></section>
-<section class="wrap" id="recettes"><div class="sectionHead"><h2>Recettes à découvrir</h2><span>Exemples de démonstration</span></div><p id="resultInfo" class="muted">Ces fiches illustrent le futur catalogue : elles seront remplacées par tes recettes.</p><div class="cards" id="recipeGrid"></div></section>
-<section class="feature wrap" id="techniques"><div><p class="eyebrow">LE SAVOIR-FAIRE</p><h2>Les gestes qui font la différence</h2><p>Apprends les bases, perfectionne tes cuissons et découvre des conseils de cuisine professionnelle.</p></div><a class="button" href="#outils">Explorer les outils →</a></section>
-<section class="wrap" id="budget"><h2>Petit budget, grandes idées</h2><p>Une rubrique à venir pour cuisiner bon et malin avec des ingrédients simples.</p></section>
-<section class="wrap tools" id="outils"><h2>Calculateur de portions</h2><p>Adapte les quantités d'une recette à ton nombre de convives.</p><label>Quantité de départ (g) <input type="number" id="quantity" min="0" value="200"></label><label>Portions initiales <input type="number" id="fromPortions" min="1" value="2"></label><label>Portions souhaitées <input type="number" id="toPortions" min="1" value="4"></label><output id="portionResult" aria-live="polite"></output></section>
-</main><footer>© <span id="year"></span> Le Geste du Chef · Site en préparation</footer>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="script.js" defer></script>
-</body></html>
+
+    <!-- ========================= -->
+    <!-- EN-TÊTE DU SITE -->
+    <!-- ========================= -->
+
+    <header class="top">
+
+        <a class="logo" href="index.html">
+            ♨ Le Geste du Chef
+            <small>RECETTES · TECHNIQUES · ASTUCES</small>
+        </a>
+
+        <form id="searchForm" role="search">
+
+            <input
+                id="search"
+                type="search"
+                placeholder="Rechercher une recette..."
+                aria-label="Rechercher une recette"
+            >
+
+            <button type="submit">
+                Rechercher
+            </button>
+
+        </form>
+
+    </header>
+
+
+    <!-- ========================= -->
+    <!-- NAVIGATION -->
+    <!-- ========================= -->
+
+    <nav aria-label="Navigation principale">
+
+        <a href="#recettes">Recettes</a>
+
+        <a href="#techniques">Techniques</a>
+
+        <a href="#budget">Petit budget</a>
+
+        <a href="#outils">Outils</a>
+
+    </nav>
+
+
+    <main>
+
+        <!-- ========================= -->
+        <!-- ACCUEIL -->
+        <!-- ========================= -->
+
+        <section class="hero">
+
+            <div class="heroText">
+
+                <p class="eyebrow">
+                    BIENVENUE DANS NOTRE CUISINE
+                </p>
+
+                <h1>Le Geste du Chef</h1>
+
+                <p class="tagline">
+                    La cuisine s'apprend, le goût se partage.
+                </p>
+
+                <p>
+                    Découvrez des recettes accessibles,
+                    des techniques de chef et des conseils
+                    pour cuisiner avec plaisir.
+                </p>
+
+                <a class="button" href="#recettes">
+                    Découvrir les recettes →
+                </a>
+
+            </div>
+
+            <img
+                src="images/hero.jpg"
+                alt="Plat gastronomique dressé avec soin"
+            >
+
+        </section>
+
+
+        <!-- ========================= -->
+        <!-- RECETTES -->
+        <!-- ========================= -->
+
+        <section class="wrap" id="recettes">
+
+            <div class="sectionHead">
+
+                <h2>Recettes à découvrir</h2>
+
+            </div>
+
+            <!-- Informations sur les résultats -->
+            <p
+                id="resultInfo"
+                class="muted"
+                aria-live="polite"
+            ></p>
+
+            <!-- Les recettes Supabase apparaîtront ici -->
+            <div
+                class="cards"
+                id="recipeGrid"
+            ></div>
+
+        </section>
+
+
+        <!-- ========================= -->
+        <!-- TECHNIQUES CULINAIRES -->
+        <!-- ========================= -->
+
+        <section class="feature wrap" id="techniques">
+
+            <div>
+
+                <p class="eyebrow">
+                    LE SAVOIR-FAIRE
+                </p>
+
+                <h2>
+                    Les gestes qui font la différence
+                </h2>
+
+                <p>
+                    Apprends les bases, perfectionne tes cuissons
+                    et découvre des conseils de cuisine
+                    professionnelle.
+                </p>
+
+            </div>
+
+            <a class="button" href="#outils">
+                Explorer les outils →
+            </a>
+
+        </section>
+
+
+        <!-- ========================= -->
+        <!-- PETIT BUDGET -->
+        <!-- ========================= -->
+
+        <section class="wrap" id="budget">
+
+            <h2>
+                Petit budget, grandes idées
+            </h2>
+
+            <p>
+                Découvre prochainement des recettes économiques,
+                savoureuses et faciles à réaliser avec
+                des ingrédients simples.
+            </p>
+
+        </section>
+
+
+        <!-- ========================= -->
+        <!-- CALCULATEUR DE PORTIONS -->
+        <!-- ========================= -->
+
+        <section class="wrap tools" id="outils">
+
+            <h2>Calculateur de portions</h2>
+
+            <p>
+                Adapte facilement les quantités d'une recette
+                au nombre de personnes.
+            </p>
+
+            <label for="quantity">
+                Quantité de départ (g)
+            </label>
+
+            <input
+                type="number"
+                id="quantity"
+                min="0"
+                value="200"
+            >
+
+            <label for="fromPortions">
+                Portions initiales
+            </label>
+
+            <input
+                type="number"
+                id="fromPortions"
+                min="1"
+                value="2"
+            >
+
+            <label for="toPortions">
+                Portions souhaitées
+            </label>
+
+            <input
+                type="number"
+                id="toPortions"
+                min="1"
+                value="4"
+            >
+
+            <output
+                id="portionResult"
+                aria-live="polite"
+            ></output>
+
+        </section>
+
+    </main>
+
+
+    <!-- ========================= -->
+    <!-- PIED DE PAGE -->
+    <!-- ========================= -->
+
+    <footer>
+
+        © <span id="year"></span>
+
+        Le Geste du Chef
+
+        · La cuisine s'apprend, le goût se partage.
+
+    </footer>
+
+
+    <!-- ========================= -->
+    <!-- SCRIPTS -->
+    <!-- ========================= -->
+
+    <!-- Bibliothèque Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Fonctionnalités du site -->
+    <script src="script.js" defer></script>
+
+</body>
+
+</html>
+```
