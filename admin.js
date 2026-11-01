@@ -872,9 +872,13 @@ if (ingredientsManquants.length > 0) {
     bouton.textContent =
         `💰 Renseigner les prix manquants (${ingredientsManquants.length})`;
 
-    bouton.style.marginTop = "15px";
+bouton.style.marginTop = "15px";
 
-if (gestionPrix) {
+bouton.addEventListener("click", () => {
+
+    const gestionPrix = document.getElementById("formulairePrix");
+
+    if (gestionPrix) {
 
     // Récupérer le premier ingrédient sans prix
     const ingredient = ingredientsManquants[0];
