@@ -1,11 +1,18 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Administration | Le Geste du Chef</title>
 
     <style>
+
+        /* ==============================
+           STYLE GÉNÉRAL
+        ============================== */
+
         * {
             box-sizing: border-box;
         }
@@ -15,31 +22,24 @@
             font-family: Arial, sans-serif;
             background: #f7f5f0;
             color: #242424;
+            line-height: 1.6;
         }
 
         header {
             background: #171717;
             color: white;
             text-align: center;
-            padding: 30px 20px;
+            padding: 35px 20px;
         }
 
         header h1 {
             margin: 0;
-            font-size: 28px;
+            font-size: 30px;
         }
 
         header p {
             color: #d5b878;
-        }
-
-        .container {
-            max-width: 450px;
-            margin: 80px auto;
-            padding: 35px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+            margin-bottom: 0;
         }
 
         h2 {
@@ -47,20 +47,124 @@
             margin-bottom: 30px;
         }
 
+        h3 {
+            margin-top: 25px;
+        }
+
+        a {
+            color: #967844;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* ==============================
+           CONNEXION ADMINISTRATEUR
+        ============================== */
+
+        .container {
+            max-width: 450px;
+            margin: 80px auto;
+            padding: 35px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        /* ==============================
+           TABLEAU DE BORD
+        ============================== */
+
+        #dashboard {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 35px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        #dashboard hr {
+            border: none;
+            border-top: 1px solid #ddd;
+            margin: 25px 0;
+        }
+
+        /* ==============================
+           FORMULAIRES
+        ============================== */
+
         label {
             display: block;
             margin-bottom: 8px;
             font-weight: bold;
         }
 
-        input {
+        input,
+        select,
+        textarea {
             width: 100%;
             padding: 13px;
             margin-bottom: 20px;
             border: 1px solid #ddd;
             border-radius: 6px;
+            font-family: Arial, sans-serif;
             font-size: 15px;
+            background: white;
+            color: #242424;
         }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: 2px solid #b59458;
+            outline-offset: 1px;
+        }
+
+        textarea {
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        /* Description */
+
+        #descriptionRecette {
+            min-height: 110px;
+        }
+
+        /* Ingrédients */
+
+        #ingredientsRecette {
+            min-height: 200px;
+        }
+
+        /* Étapes de préparation */
+
+        #etapesRecette {
+            min-height: 300px;
+        }
+
+        /* Case à cocher */
+
+        #publieRecette {
+            width: auto;
+            margin: 0 8px 0 0;
+            accent-color: #b59458;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin: 10px 0 25px;
+            cursor: pointer;
+        }
+
+        /* ==============================
+           BOUTONS
+        ============================== */
 
         button {
             width: 100%;
@@ -72,10 +176,41 @@
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
+            transition: background 0.2s;
         }
 
         button:hover {
             background: #967844;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* ==============================
+           FORMULAIRE RECETTE
+        ============================== */
+
+        #formulaireRecette {
+            margin-top: 30px;
+            padding: 25px;
+            background: #fcfbf8;
+            border: 1px solid #e8e0d2;
+            border-radius: 10px;
+        }
+
+        #titreFormulaire {
+            margin-top: 0;
+            margin-bottom: 25px;
+            color: #242424;
+            font-size: 23px;
+        }
+
+        #messageRecette {
+            margin-top: 20px;
+            font-weight: bold;
+            color: #967844;
         }
 
         #message {
@@ -83,144 +218,356 @@
             text-align: center;
         }
 
-        a {
-            color: #967844;
+        /* ==============================
+           LISTE DES RECETTES
+        ============================== */
+
+        #listeRecettes {
+            margin-top: 30px;
         }
+
+        #listeRecettes h3 {
+            margin-top: 0;
+        }
+
+        /* ==============================
+           VERSION MOBILE
+        ============================== */
+
+        @media (max-width: 700px) {
+
+            .container {
+                margin: 30px 15px;
+                padding: 25px;
+            }
+
+            #dashboard {
+                margin: 20px 10px;
+                padding: 20px;
+            }
+
+            #formulaireRecette {
+                padding: 15px;
+            }
+
+            header h1 {
+                font-size: 24px;
+            }
+
+            h2 {
+                font-size: 22px;
+            }
+
+            #ingredientsRecette {
+                min-height: 180px;
+            }
+
+            #etapesRecette {
+                min-height: 250px;
+            }
+        }
+
     </style>
 </head>
 
 <body>
 
-<header>
-    <h1>LE GESTE DU CHEF</h1>
-    <p>Espace administration</p>
-</header>
+    <!-- ==============================
+         EN-TÊTE
+    ============================== -->
 
-<div class="container">
+    <header>
 
-    <h2>Connexion administrateur</h2>
+        <h1>LE GESTE DU CHEF</h1>
 
-    <form id="loginForm">
+        <p>Espace administration</p>
 
-        <label for="email">Adresse e-mail</label>
-        <input
-            type="email"
-            id="email"
-            placeholder="Votre adresse e-mail"
-            autocomplete="email"
-            required
-        >
+    </header>
 
-        <label for="password">Mot de passe</label>
-        <input
-            type="password"
-            id="password"
-            placeholder="Votre mot de passe"
-            autocomplete="current-password"
-            required
-        >
 
-        <button type="submit">
-            Se connecter
+    <!-- ==============================
+         CONNEXION ADMINISTRATEUR
+    ============================== -->
+
+    <div class="container">
+
+        <h2>Connexion administrateur</h2>
+
+        <form id="loginForm">
+
+            <label for="email">
+                Adresse e-mail
+            </label>
+
+            <input
+                type="email"
+                id="email"
+                placeholder="Votre adresse e-mail"
+                autocomplete="email"
+                required
+            >
+
+            <label for="password">
+                Mot de passe
+            </label>
+
+            <input
+                type="password"
+                id="password"
+                placeholder="Votre mot de passe"
+                autocomplete="current-password"
+                required
+            >
+
+            <button type="submit">
+                Se connecter
+            </button>
+
+        </form>
+
+        <p id="message" role="status"></p>
+
+        <p style="text-align:center;">
+            <a href="index.html">
+                ← Retour au site
+            </a>
+        </p>
+
+    </div>
+
+
+    <!-- ==============================
+         TABLEAU DE BORD
+    ============================== -->
+
+    <section id="dashboard" style="display:none;">
+
+        <h2>Tableau de bord administrateur</h2>
+
+        <p>
+            Bienvenue dans ton espace de gestion des recettes.
+        </p>
+
+        <hr>
+
+        <h3>🍽️ Gestion des recettes</h3>
+
+        <!-- Ajouter une recette -->
+
+        <button type="button" id="ajouterRecette">
+            + Ajouter une recette
         </button>
 
-    </form>
 
-    <p id="message"></p>
+        <!-- ==============================
+             FORMULAIRE RECETTE
+        ============================== -->
 
-    <p style="text-align:center">
-        <a href="index.html">← Retour au site</a>
-    </p>
-    </div>
-<section id="dashboard" style="display:none; max-width:900px; margin:40px auto; padding:30px; background:white; border-radius:12px;">
+        <div id="formulaireRecette" style="display:none;">
 
-    <h2>Tableau de bord administrateur</h2>
+            <h3 id="titreFormulaire">
+                Nouvelle recette
+            </h3>
 
-    <p>Bienvenue dans ton espace de gestion des recettes.</p>
+            <form id="recetteForm">
 
-    <hr>
+                <!-- Nom -->
 
-    <h3>🍽️ Gestion des recettes</h3>
+                <label for="titreRecette">
+                    Nom de la recette
+                </label>
 
-    <button type="button" id="ajouterRecette">
-        + Ajouter une recette
-    </button>
-    <div id="formulaireRecette" style="display:none; margin-top:30px;">
+                <input
+                    type="text"
+                    id="titreRecette"
+                    placeholder="Exemple : Crème brûlée traditionnelle"
+                    required
+                >
 
-    <h3 id="titreFormulaire">Nouvelle recette</h3>
 
-    <form id="recetteForm">
+                <!-- Catégorie -->
 
-        <label for="titreRecette">Nom de la recette</label>
-        <input type="text" id="titreRecette" required>
+                <label for="categorieRecette">
+                    Catégorie
+                </label>
 
-        <label for="categorieRecette">Catégorie</label>
-        <select id="categorieRecette" required>
-            <option value="">Choisir une catégorie</option>
-            <option value="Entrée">Entrée</option>
-            <option value="Plat">Plat</option>
-            <option value="Dessert">Dessert</option>
-        </select>
+                <select id="categorieRecette" required>
 
-        <label for="descriptionRecette">Description</label>
-        <textarea id="descriptionRecette" rows="4"></textarea>
+                    <option value="">
+                        Choisir une catégorie
+                    </option>
 
-        <label for="preparationRecette">Temps de préparation (minutes)</label>
-        <input type="number" id="preparationRecette" min="0" value="0">
+                    <option value="Entrée">
+                        Entrée
+                    </option>
 
-        <label for="cuissonRecette">Temps de cuisson (minutes)</label>
-        <input type="number" id="cuissonRecette" min="0" value="0">
+                    <option value="Plat">
+                        Plat
+                    </option>
 
-        <label for="portionsRecette">Nombre de portions</label>
-        <input type="number" id="portionsRecette" min="1" value="4">
+                    <option value="Dessert">
+                        Dessert
+                    </option>
 
-        <label for="ingredientsRecette">Ingrédients (un par ligne)</label>
-        <textarea
-            id="ingredientsRecette"
-            rows="6"
-            placeholder="500 g de farine&#10;10 g de sel&#10;300 ml d'eau"
-        ></textarea>
+                </select>
 
-        <label for="etapesRecette">Étapes de préparation (une par ligne)</label>
-        <textarea
-            id="etapesRecette"
-            rows="8"
-            placeholder="Préchauffer le four&#10;Mélanger les ingrédients&#10;Enfourner"
-        ></textarea>
 
-        <label for="imageRecette">Adresse de la photo (URL)</label>
-        <input
-            type="url"
-            id="imageRecette"
-            placeholder="https://exemple.fr/photo.jpg"
-        >
+                <!-- Description -->
 
-        <label style="margin-bottom:20px;">
-            <input type="checkbox" id="publieRecette" style="width:auto;">
-            Publier immédiatement
-        </label>
+                <label for="descriptionRecette">
+                    Description
+                </label>
 
-        <button type="submit">Enregistrer la recette</button>
+                <textarea
+                    id="descriptionRecette"
+                    rows="4"
+                    placeholder="Présente ta recette en quelques phrases..."
+                ></textarea>
 
-    </form>
 
-    <p id="messageRecette"></p>
+                <!-- Préparation -->
 
-</div>
+                <label for="preparationRecette">
+                    Temps de préparation (minutes)
+                </label>
 
-    <div id="listeRecettes">
-        <p>Tes recettes apparaîtront ici.</p>
-    </div>
+                <input
+                    type="number"
+                    id="preparationRecette"
+                    min="0"
+                    value="0"
+                >
 
-    <hr>
 
-    <button type="button" id="deconnexion">
-        Se déconnecter
-    </button>
+                <!-- Cuisson -->
 
-</section>
+                <label for="cuissonRecette">
+                    Temps de cuisson (minutes)
+                </label>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="admin.js"></script>
+                <input
+                    type="number"
+                    id="cuissonRecette"
+                    min="0"
+                    value="0"
+                >
+
+
+                <!-- Portions -->
+
+                <label for="portionsRecette">
+                    Nombre de portions
+                </label>
+
+                <input
+                    type="number"
+                    id="portionsRecette"
+                    min="1"
+                    value="4"
+                >
+
+
+                <!-- Ingrédients -->
+
+                <label for="ingredientsRecette">
+                    🥚 Ingrédients (un par ligne)
+                </label>
+
+                <textarea
+                    id="ingredientsRecette"
+                    rows="8"
+                    placeholder="500 ml de crème liquide entière&#10;5 jaunes d'œufs&#10;80 g de sucre&#10;1 gousse de vanille"
+                ></textarea>
+
+
+                <!-- Étapes -->
+
+                <label for="etapesRecette">
+                    👨‍🍳 Étapes de préparation (une par ligne)
+                </label>
+
+                <textarea
+                    id="etapesRecette"
+                    rows="12"
+                    placeholder="Préchauffer le four.&#10;Préparer les ingrédients.&#10;Mélanger les ingrédients.&#10;Cuire la préparation.&#10;Laisser refroidir."
+                ></textarea>
+
+
+                <!-- Photo -->
+
+                <label for="imageRecette">
+                    📸 Adresse de la photo (URL)
+                </label>
+
+                <input
+                    type="url"
+                    id="imageRecette"
+                    placeholder="https://exemple.fr/photo.jpg"
+                >
+
+
+                <!-- Publication -->
+
+                <label class="checkbox-label">
+
+                    <input
+                        type="checkbox"
+                        id="publieRecette"
+                    >
+
+                    Publier immédiatement
+
+                </label>
+
+
+                <!-- Enregistrement -->
+
+                <button type="submit" id="enregistrerRecette">
+                    Enregistrer la recette
+                </button>
+
+            </form>
+
+            <p id="messageRecette" role="status"></p>
+
+        </div>
+
+
+        <!-- ==============================
+             RECETTES ENREGISTRÉES
+        ============================== -->
+
+        <div id="listeRecettes">
+
+            <p>
+                Tes recettes apparaîtront ici.
+            </p>
+
+        </div>
+
+
+        <hr>
+
+
+        <!-- ==============================
+             DÉCONNEXION
+        ============================== -->
+
+        <button type="button" id="deconnexion">
+            Se déconnecter
+        </button>
+
+    </section>
+
+
+    <!-- ==============================
+         SCRIPTS
+    ============================== -->
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="admin.js"></script>
+
 </body>
+
 </html>
