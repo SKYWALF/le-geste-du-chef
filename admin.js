@@ -655,3 +655,87 @@ if (prixForm) {
         }
     });
 }
+// =====================================
+// AFFICHER LES PRIX DES INGRÉDIENTS
+// =====================================
+
+async function afficherListePrix() {
+
+    const liste = document.getElementById("listePrixIngredients");
+
+    if (!liste) return;
+
+    liste.textContent = "⏳ Chargement des prix...";
+
+    const { data, error } = await supabaseClient
+        .from("prix_ingredients")
+        .select("ingredient, prix_unitaire, unite, source")
+        .order("ingredient", { ascending: true });
+
+    if (error) {
+        liste.textContent = "❌ Erreur : " + error.message;
+        return;
+    }
+
+    liste.innerHTML = "";
+
+    if (!data || data.length === 0) {
+        liste.textContent = "Aucun ingrédient enregistré.";
+        return;
+    }
+
+    data.forEach((produit) => {
+
+        const carte = document.createElement("div");
+
+        carte.style.cssText = `
+            padding: 15px;
+            margin-bottom: 10px;
+            background: white;
+            border: 1px solid #e8e0d2;
+            border-radius: 8px;
+        `;
+
+        const nom = document.createElement("strong");
+        nom.textContent = produit.ingredient;
+
+        const prix = document.createElement("p");
+
+        const montant = Number(produit.prix_unitaire)
+            .toLocaleString("fr-FR", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 4
+            });
+
+        prix.textContent = `${montant} € / ${produit.unite}`;
+
+        const source = document.createElement("small");
+        source.textContent = produit.source || "Source non renseignée";
+
+        carte.appendChild(nom);
+        carte.appendChild(prix);
+        carte.appendChild(source);
+
+        liste.appendChild(carte);
+
+    });
+}
+
+// Bouton pour actualiser la liste
+const boutonActualiserPrix =
+    document.getElementById("actualiserListePrix");
+
+if (boutonActualiserPrix) {
+    boutonActualiserPrix.addEventListener("click", afficherListePrix);
+}
+
+// Charger la liste à l'ouverture du formulaire
+if (boutonGererPrix) {
+    boutonGererPrix.addEventListener("click", () => {
+
+        if (formulairePrix.style.display === "block") {
+            afficherListePrix();
+        }
+
+    });
+}
