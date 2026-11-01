@@ -361,7 +361,7 @@ actualiserPrix();
 
     // ASSEMBLAGE
 
-  contenu.append(blocIngredients, blocPrix, blocPreparation);
+contenu.append(blocIngredients, blocPreparation, blocPrix);
 
     recetteDetail.append(
         photo,
