@@ -712,11 +712,48 @@ async function afficherListePrix() {
         const source = document.createElement("small");
         source.textContent = produit.source || "Source non renseignée";
 
-        carte.appendChild(nom);
-        carte.appendChild(prix);
-        carte.appendChild(source);
+// Bouton pour modifier le prix
+const boutonModifier = document.createElement("button");
 
-        liste.appendChild(carte);
+boutonModifier.type = "button";
+boutonModifier.textContent = "✏️ Modifier";
+
+boutonModifier.style.cssText = `
+    margin-top: 12px;
+    padding: 10px;
+    font-size: 14px;
+`;
+
+boutonModifier.addEventListener("click", () => {
+
+    // Remplir le formulaire avec les informations existantes
+    document.getElementById("nomIngredient").value =
+        produit.ingredient;
+
+    document.getElementById("prixIngredient").value =
+        produit.prix_unitaire;
+
+    document.getElementById("uniteIngredient").value =
+        produit.unite;
+
+    document.getElementById("sourceIngredient").value =
+        produit.source || "";
+
+    // Remonter jusqu'au formulaire
+    document.getElementById("prixForm").scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
+
+});
+
+// Afficher les informations et le bouton
+carte.appendChild(nom);
+carte.appendChild(prix);
+carte.appendChild(source);
+carte.appendChild(boutonModifier);
+
+liste.appendChild(carte);
 
     });
 }
