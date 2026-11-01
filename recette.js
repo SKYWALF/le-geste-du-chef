@@ -394,6 +394,10 @@ async function chargerPrixIngredients() {
 // CALCUL DU PRIX D'UN INGRÉDIENT
 // ==========================================
 
+// ==========================================
+// CALCUL DU PRIX D'UN INGRÉDIENT
+// ==========================================
+
 function calculerPrixIngredient(ingredient, prixIngredients) {
 
     let texte = "";
@@ -408,9 +412,9 @@ function calculerPrixIngredient(ingredient, prixIngredients) {
         ].filter(valeur => valeur != null).join(" ");
     }
 
-    // Exemple : "500 ml de lait demi-écrémé"
+    // Exemple : "80 g de sucre"
     const resultat = texte.trim().match(
-        /^(\d+(?:[.,]\d+)?)\s*(ml|cl|l)\s+(?:de\s+|du\s+|d['’])?(.*)$/i
+        /^(\d+(?:[.,]\d+)?)\s*(kg|mg|g|ml|cl|l|pièces?|unités?|gousses?)\s+(?:de\s+|du\s+|d['’])?(.*)$/i
     );
 
     if (!resultat) {
@@ -423,9 +427,8 @@ function calculerPrixIngredient(ingredient, prixIngredients) {
     const nom = resultat[3]
         .toLowerCase()
         .trim()
-        .replace(/^de\s+|^du\s+|^d['’]/, "");
+        .replace(/^(de\s+|du\s+|d['’])/, "");
 
-    // Rechercher un prix correspondant dans Supabase
     const prix = prixIngredients.find(p =>
         p.ingredient.toLowerCase().trim() === nom
     );
@@ -434,22 +437,42 @@ function calculerPrixIngredient(ingredient, prixIngredients) {
         return null;
     }
 
-    // Pour l'instant, calculer uniquement les liquides
-    if (prix.unite.toLowerCase() !== "l") {
+    const unitePrix = prix.unite.toLowerCase().trim();
+
+    // Convertir les unités en unités de référence
+    const conversions = {
+        mg: { type: "masse", facteur: 0.000001 },
+        g: { type: "masse", facteur: 0.001 },
+        kg: { type: "masse", facteur: 1 },
+
+        ml: { type: "volume", facteur: 0.001 },
+        cl: { type: "volume", facteur: 0.01 },
+        l: { type: "volume", facteur: 1 },
+
+        pièce: { type: "unite", facteur: 1 },
+        pièces: { type: "unite", facteur: 1 },
+        unité: { type: "unite", facteur: 1 },
+        unités: { type: "unite", facteur: 1 },
+        gousse: { type: "unite", facteur: 1 },
+        gousses: { type: "unite", facteur: 1 }
+    };
+
+    const uniteRecette = conversions[unite];
+    const uniteBase = conversions[unitePrix];
+
+    if (!uniteRecette || !uniteBase) {
         return null;
     }
 
-    let quantiteLitres = quantite;
-
-    if (unite === "ml") {
-        quantiteLitres = quantite / 1000;
+    // Empêcher de mélanger grammes, litres et unités
+    if (uniteRecette.type !== uniteBase.type) {
+        return null;
     }
 
-    if (unite === "cl") {
-        quantiteLitres = quantite / 100;
-    }
+    const quantiteConvertie =
+        (quantite * uniteRecette.facteur) / uniteBase.facteur;
 
-    return quantiteLitres * Number(prix.prix_unitaire);
+    return quantiteConvertie * Number(prix.prix_unitaire);
 }
 // 8. DÉMARRAGE
 
