@@ -639,10 +639,13 @@ if (prixForm) {
                 throw error;
             }
 
-            messagePrix.textContent =
-                "✅ Prix enregistré avec succès !";
+  messagePrix.textContent =
+    "✅ Prix enregistré avec succès !";
 
-            prixForm.reset();
+prixForm.reset();
+
+// Actualiser automatiquement la liste des prix
+await afficherListePrix();
 
         } catch (erreur) {
             console.error("Erreur d'enregistrement du prix :", erreur);
