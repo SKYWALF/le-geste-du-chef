@@ -176,7 +176,25 @@ async function chargerRecette() {
     ].forEach(info => {
         infos.appendChild(creerElement("span", info));
     });
+// ==========================================
+// SÉLECTEUR DU NOMBRE DE PORTIONS
+// ==========================================
 
+const selecteurPortions = document.createElement("div");
+selecteurPortions.className = "selecteur-portions";
+
+const labelPortions = document.createElement("label");
+labelPortions.textContent = "🍽️ Nombre de personnes : ";
+labelPortions.htmlFor = "nombrePortions";
+
+const nombrePortions = document.createElement("input");
+nombrePortions.type = "number";
+nombrePortions.id = "nombrePortions";
+nombrePortions.min = "1";
+nombrePortions.max = "100";
+nombrePortions.value = recette.portions || 1;
+
+selecteurPortions.append(labelPortions, nombrePortions);
     // CONTENU PRINCIPAL
 
     const contenu = document.createElement("div");
@@ -190,10 +208,68 @@ async function chargerRecette() {
         creerElement("h2", "Ingrédients")
     );
 
-    blocIngredients.appendChild(
-        creerListe(recette.ingredients)
+   let listeIngredients = creerListe(recette.ingredients);
+
+blocIngredients.appendChild(listeIngredients);
+// ==========================================
+// CALCUL AUTOMATIQUE DES PORTIONS
+// ==========================================
+
+const portionsOriginales = Number(recette.portions) || 1;
+
+nombrePortions.addEventListener("input", () => {
+
+    const nouvellesPortions = Number(nombrePortions.value);
+
+    if (!Number.isInteger(nouvellesPortions) ||
+        nouvellesPortions < 1 ||
+        nouvellesPortions > 100) {
+        return;
+    }
+
+    const coefficient = nouvellesPortions / portionsOriginales;
+
+    const ingredientsAjustes = (recette.ingredients || []).map(ingredient => {
+
+        // Ingrédient enregistré sous forme de texte
+        if (typeof ingredient === "string") {
+
+            return ingredient.replace(
+                /^(\d+(?:[.,]\d+)?)(?=\s|$)/,
+                (nombre) => {
+                    const quantite = Number(nombre.replace(",", "."));
+                    const resultat = Math.round(quantite * coefficient * 100) / 100;
+
+                    return String(resultat).replace(".", ",");
+                }
+            );
+        }
+
+        // Ingrédient enregistré avec une quantité séparée
+        if (ingredient && typeof ingredient === "object") {
+
+            const quantite = Number(
+                String(ingredient.quantite).replace(",", ".")
+            );
+
+            if (Number.isFinite(quantite)) {
+                return {
+                    ...ingredient,
+                    quantite: Math.round(quantite * coefficient * 100) / 100
+                };
+            }
+        }
+
+        return ingredient;
+    });
+
+    listeIngredients.replaceWith(
+        creerListe(ingredientsAjustes)
     );
 
+    // Garder la référence vers la nouvelle liste
+    listeIngredients = blocIngredients.querySelector("ul");
+});
     // PRÉPARATION
 
     const blocPreparation = document.createElement("section");
@@ -214,8 +290,9 @@ async function chargerRecette() {
         photo,
         titre,
         description,
-        infos,
-        contenu
+      infos,
+    selecteurPortions,
+    contenu
     );
 }
 
