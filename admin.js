@@ -67,3 +67,58 @@ document.getElementById("deconnexion").addEventListener("click", async () => {
 
     message.textContent = "Vous êtes déconnecté.";
 });
+// Afficher ou masquer le formulaire de recette
+document.getElementById("ajouterRecette").addEventListener("click", () => {
+    const formulaire = document.getElementById("formulaireRecette");
+
+    formulaire.style.display =
+        formulaire.style.display === "none" ? "block" : "none";
+});
+
+// Enregistrer une recette dans Supabase
+document.getElementById("recetteForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const messageRecette = document.getElementById("messageRecette");
+    const bouton = event.submitter;
+
+    bouton.disabled = true;
+    messageRecette.textContent = "Enregistrement en cours...";
+
+    // Transformer les lignes en listes
+    const lireLignes = (id) => {
+        return document.getElementById(id).value
+            .split("\n")
+            .map(ligne => ligne.trim())
+            .filter(ligne => ligne.length > 0);
+    };
+
+    const recette = {
+        titre: document.getElementById("titreRecette").value.trim(),
+        categorie: document.getElementById("categorieRecette").value,
+        description: document.getElementById("descriptionRecette").value.trim(),
+        temps_preparation: Number(document.getElementById("preparationRecette").value),
+        temps_cuisson: Number(document.getElementById("cuissonRecette").value),
+        portions: Number(document.getElementById("portionsRecette").value),
+        ingredients: lireLignes("ingredientsRecette"),
+        etapes: lireLignes("etapesRecette"),
+        image_url: document.getElementById("imageRecette").value.trim() || null,
+        publie: document.getElementById("publieRecette").checked
+    };
+
+    const { error } = await supabaseClient
+        .from("recettes")
+        .insert([recette]);
+
+    bouton.disabled = false;
+
+    if (error) {
+        messageRecette.textContent =
+            "Erreur lors de l'enregistrement : " + error.message;
+        return;
+    }
+
+    messageRecette.textContent = "✅ Recette enregistrée avec succès !";
+
+    document.getElementById("recetteForm").reset();
+});

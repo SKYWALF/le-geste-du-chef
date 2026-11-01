@@ -145,6 +145,68 @@
     <button type="button" id="ajouterRecette">
         + Ajouter une recette
     </button>
+    <div id="formulaireRecette" style="display:none; margin-top:30px;">
+
+    <h3>Nouvelle recette</h3>
+
+    <form id="recetteForm">
+
+        <label for="titreRecette">Nom de la recette</label>
+        <input type="text" id="titreRecette" required>
+
+        <label for="categorieRecette">Catégorie</label>
+        <select id="categorieRecette" required>
+            <option value="">Choisir une catégorie</option>
+            <option value="Entrée">Entrée</option>
+            <option value="Plat">Plat</option>
+            <option value="Dessert">Dessert</option>
+        </select>
+
+        <label for="descriptionRecette">Description</label>
+        <textarea id="descriptionRecette" rows="4"></textarea>
+
+        <label for="preparationRecette">Temps de préparation (minutes)</label>
+        <input type="number" id="preparationRecette" min="0" value="0">
+
+        <label for="cuissonRecette">Temps de cuisson (minutes)</label>
+        <input type="number" id="cuissonRecette" min="0" value="0">
+
+        <label for="portionsRecette">Nombre de portions</label>
+        <input type="number" id="portionsRecette" min="1" value="4">
+
+        <label for="ingredientsRecette">Ingrédients (un par ligne)</label>
+        <textarea
+            id="ingredientsRecette"
+            rows="6"
+            placeholder="500 g de farine&#10;10 g de sel&#10;300 ml d'eau"
+        ></textarea>
+
+        <label for="etapesRecette">Étapes de préparation (une par ligne)</label>
+        <textarea
+            id="etapesRecette"
+            rows="8"
+            placeholder="Préchauffer le four&#10;Mélanger les ingrédients&#10;Enfourner"
+        ></textarea>
+
+        <label for="imageRecette">Adresse de la photo (URL)</label>
+        <input
+            type="url"
+            id="imageRecette"
+            placeholder="https://exemple.fr/photo.jpg"
+        >
+
+        <label style="margin-bottom:20px;">
+            <input type="checkbox" id="publieRecette" style="width:auto;">
+            Publier immédiatement
+        </label>
+
+        <button type="submit">Enregistrer la recette</button>
+
+    </form>
+
+    <p id="messageRecette"></p>
+
+</div>
 
     <div id="listeRecettes">
         <p>Tes recettes apparaîtront ici.</p>
