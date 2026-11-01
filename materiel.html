@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Mon matériel de cuisine | Le Geste du Chef</title>
+    <meta name="description" content="Découvre ma sélection d'ustensiles et de matériel de cuisine, avec mes conseils pour bien choisir ton équipement.">
+
+    <style>
+        :root {
+            --fond: #f8f6f2;
+            --blanc: #ffffff;
+            --texte: #242424;
+            --secondaire: #666666;
+            --or: #b17b13;
+            --or-fonce: #93640d;
+            --bordure: #ece7df;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--fond);
+            color: var(--texte);
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        .conteneur {
+            width: min(1200px, 92%);
+            margin: auto;
+        }
+
+        .navigation {
+            background: white;
+            border-bottom: 1px solid var(--bordure);
+        }
+
+        .navigation-interieur {
+            min-height: 85px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo {
+            font-family: Georgia, serif;
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--texte);
+        }
+
+        .retour {
+            color: var(--or);
+            font-weight: bold;
+        }
+
+        .retour:hover {
+            color: var(--or-fonce);
+        }
+
+        .introduction {
+            padding: 75px 0 45px;
+            text-align: center;
+        }
+
+        .etiquette {
+            color: var(--or);
+            font-size: 13px;
+            font-weight: bold;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        h1, h2, h3 {
+            font-family: Georgia, serif;
+        }
+
+        h1 {
+            font-size: clamp(32px, 5vw, 48px);
+            margin: 15px 0;
+        }
+
+        .description-intro {
+            max-width: 700px;
+            margin: 0 auto;
+            color: var(--secondaire);
+            font-size: 17px;
+        }
+
+        .filtres {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 35px 0 45px;
+        }
+
+        .filtre {
+            padding: 12px 22px;
+            background: white;
+            color: var(--texte);
+            border: 1px solid var(--bordure);
+            border-radius: 30px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .filtre:hover,
+        .filtre.actif {
+            background: var(--or);
+            color: white;
+            border-color: var(--or);
+        }
+
+        .titre-section {
+            margin-bottom: 25px;
+            font-size: 29px;
+        }
+
+        .grille {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+        }
+
+        .carte {
+            background: white;
+            border: 1px solid var(--bordure);
+            border-radius: 18px;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .carte:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.07);
+        }
+
+        .image-produit {
+            height: 230px;
+            background: #f0ede7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .image-produit img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .image-placeholder {
+            font-size: 75px;
+        }
+
+        .contenu-carte {
+            padding: 25px;
+        }
+
+        .categorie {
+            display: inline-block;
+            font-size: 12px;
+            color: var(--or);
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .contenu-carte h3 {
+            margin: 10px 0;
+            font-size: 23px;
+        }
+
+        .contenu-carte p {
+            color: var(--secondaire);
+            font-size: 14px;
+            min-height: 70px;
+        }
+
+        .conseil {
+            background: #faf7f0;
+            padding: 12px;
+            border-left: 3px solid var(--or);
+            border-radius: 5px;
+            font-size: 13px;
+            margin: 15px 0;
+        }
+
+        .bouton {
+            display: block;
+            width: 100%;
+            padding: 14px 18px;
+            text-align: center;
+            background: var(--or);
+            color: white;
+            font-weight: bold;
+            border-radius: 9px;
+            transition: 0.2s;
+        }
+
+        .bouton:hover {
+            background: var(--or-fonce);
+        }
+
+        .bouton.desactive {
+            background: #e6e2dc;
+            color: #777;
+            cursor: default;
+        }
+
+        .information {
+            margin: 65px 0;
+            padding: 30px;
+            border-radius: 15px;
+            background: white;
+            border: 1px solid var(--bordure);
+        }
+
+        .information h2 {
+            margin-top: 0;
+        }
+
+        .information p {
+            color: var(--secondaire);
+            margin-bottom: 0;
+        }
+
+        footer {
+            padding: 30px 15px;
+            text-align: center;
+            color: var(--secondaire);
+            border-top: 1px solid var(--bordure);
+            font-size: 14px;
+        }
+
+        @media (max-width: 900px) {
+            .grille {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .grille {
+                grid-template-columns: 1fr;
+            }
+
+            .navigation-interieur {
+                min-height: 75px;
+            }
+
+            .logo {
+                font-size: 19px;
+            }
+
+            .retour {
+                font-size: 13px;
+            }
+
+            .introduction {
+                padding-top: 45px;
+            }
+
+            .image-produit {
+                height: 210px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navigation">
+        <div class="conteneur navigation-interieur">
+            <a href="index.html" class="logo">
+                Le Geste du Chef
+            </a>
+
+            <a href="index.html" class="retour">
+                ← Retour à l'accueil
+            </a>
+        </div>
+    </nav>
+
+    <main class="conteneur">
+
+        <section class="introduction">
+            <div class="etiquette">LE MATÉRIEL DU CHEF</div>
+
+            <h1>Les ustensiles que j'utilise en cuisine</h1>
+
+            <p class="description-intro">
+                Découvre ma sélection de matériel de cuisine et de pâtisserie.
+                Des ustensiles pratiques pour cuisiner au quotidien,
+                avec mes conseils pour bien les choisir.
+            </p>
+        </section>
+
+        <div class="filtres">
+            <button class="filtre actif" data-filtre="tous">
+                Tous les ustensiles
+            </button>
+
+            <button class="filtre" data-filtre="cuisine">
+                Cuisine
+            </button>
+
+            <button class="filtre" data-filtre="patisserie">
+                Pâtisserie
+            </button>
+
+            <button class="filtre" data-filtre="accessoires">
+                Accessoires
+            </button>
+        </div>
+
+        <section>
+            <h2 class="titre-section">Ma sélection de matériel</h2>
+
+            <div class="grille" id="grilleMateriel"></div>
+        </section>
+
+        <section class="information">
+            <h2>Une sélection basée sur mon expérience</h2>
+
+            <p>
+                Je partage ici du matériel que j'utilise ou que je connais,
+                ainsi que mes conseils pour choisir les bons ustensiles.
+                Certains liens peuvent être affiliés : je peux percevoir
+                une commission sur les achats éligibles, sans coût
+                supplémentaire pour toi.
+            </p>
+        </section>
+
+    </main>
+
+    <footer>
+        © Le Geste du Chef — Conseils, recettes et matériel de cuisine.
+    </footer>
+
+    <script>
+        /*
+         * AJOUTE TES USTENSILES ICI
+         *
+         * image : adresse de la photo du produit
+         * lien  : ton lien d'affiliation
+         *
+         * Laisse image et lien vides tant que tu
+         * n'as pas choisi les produits.
+         */
+
+        const materiel = [
+            {
+                nom: "Couteau de chef",
+                categorie: "cuisine",
+                emoji: "🔪",
+                image: "",
+                description: "Un indispensable pour découper les légumes, les viandes et préparer les ingrédients avec précision.",
+                conseil: "Privilégie une bonne prise en main et une lame adaptée à ton utilisation.",
+                lien: ""
+            },
+            {
+                nom: "Cul-de-poule en inox",
+                categorie: "patisserie",
+                emoji: "🥣",
+                image: "",
+                description: "Très pratique pour mélanger les préparations, monter des blancs en neige et travailler les pâtes.",
+                conseil: "L'inox est résistant, facile à nettoyer et adapté à de nombreuses préparations.",
+                lien: ""
+            },
+            {
+                nom: "Balance de précision",
+                categorie: "patisserie",
+                emoji: "⚖️",
+                image: "",
+                description: "Un outil essentiel pour peser correctement les ingrédients et réussir les recettes de pâtisserie.",
+                conseil: "Choisis une balance fiable avec une précision adaptée à tes recettes.",
+                lien: ""
+            },
+            {
+                nom: "Thermomètre de cuisson",
+                categorie: "cuisine",
+                emoji: "🌡️",
+                image: "",
+                description: "Permet de contrôler les températures pour les cuissons, le chocolat et certaines préparations.",
+                conseil: "Un modèle à lecture rapide est particulièrement pratique en cuisine.",
+                lien: ""
+            },
+            {
+                nom: "Spatule en silicone",
+                categorie: "patisserie",
+                emoji: "🍰",
+                image: "",
+                description: "Idéale pour mélanger délicatement les préparations et récupérer les appareils dans les récipients.",
+                conseil: "Vérifie sa résistance à la chaleur avant de l'utiliser dans une préparation chaude.",
+                lien: ""
+            },
+            {
+                nom: "Pince de cuisine",
+                categorie: "accessoires",
+                emoji: "🍽️",
+                image: "",
+                description: "Pratique pour retourner les aliments, manipuler les préparations et réaliser certains dressages.",
+                conseil: "Une pince en inox avec une bonne souplesse offre un contrôle précis.",
+                lien: ""
+            }
+        ];
+
+        const grille = document.getElementById("grilleMateriel");
+        const boutonsFiltres = document.querySelectorAll(".filtre");
+
+        function afficherMateriel(filtre = "tous") {
+            grille.innerHTML = "";
+
+            const produitsFiltres = materiel.filter(produit =>
+                filtre === "tous" || produit.categorie === filtre
+            );
+
+            produitsFiltres.forEach(produit => {
+                const carte = document.createElement("article");
+                carte.className = "carte";
+
+                const imageBloc = document.createElement("div");
+                imageBloc.className = "image-produit";
+
+                if (produit.image) {
+                    const image = document.createElement("img");
+                    image.src = produit.image;
+                    image.alt = produit.nom;
+                    image.loading = "lazy";
+                    imageBloc.appendChild(image);
+                } else {
+                    const emoji = document.createElement("span");
+                    emoji.className = "image-placeholder";
+                    emoji.textContent = produit.emoji;
+                    imageBloc.appendChild(emoji);
+                }
+
+                const contenu = document.createElement("div");
+                contenu.className = "contenu-carte";
+
+                const categorie = document.createElement("span");
+                categorie.className = "categorie";
+                categorie.textContent = produit.categorie;
+
+                const titre = document.createElement("h3");
+                titre.textContent = produit.nom;
+
+                const description = document.createElement("p");
+                description.textContent = produit.description;
+
+                const conseil = document.createElement("div");
+                conseil.className = "conseil";
+                conseil.textContent = "💡 Conseil : " + produit.conseil;
+
+                const bouton = document.createElement("a");
+                bouton.className = "bouton";
+
+                if (produit.lien) {
+                    bouton.href = produit.lien;
+                    bouton.target = "_blank";
+                    bouton.rel = "sponsored nofollow noopener noreferrer";
+                    bouton.textContent = "🛒 Voir le produit →";
+                } else {
+                    bouton.classList.add("desactive");
+                    bouton.textContent = "Produit bientôt disponible";
+                    bouton.removeAttribute("href");
+                }
+
+                contenu.append(
+                    categorie,
+                    titre,
+                    description,
+                    conseil,
+                    bouton
+                );
+
+                carte.append(imageBloc, contenu);
+                grille.appendChild(carte);
+            });
+        }
+
+        boutonsFiltres.forEach(bouton => {
+            bouton.addEventListener("click", () => {
+                boutonsFiltres.forEach(b =>
+                    b.classList.remove("actif")
+                );
+
+                bouton.classList.add("actif");
+                afficherMateriel(bouton.dataset.filtre);
+            });
+        });
+
+        afficherMateriel();
+    </script>
+
+</body>
+</html>
