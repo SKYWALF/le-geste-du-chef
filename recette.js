@@ -281,13 +281,23 @@ const titrePrix = creerElement(
     "h2",
     "💰 Coût estimé de la recette"
 );
+const mentionPrix = creerElement(
+    "p",
+    "ℹ️ Prix indicatifs : le coût peut varier selon les marques, les magasins et le lieu d'achat."
+);
+
+mentionPrix.style.fontSize = "13px";
+mentionPrix.style.color = "#777";
+mentionPrix.style.fontStyle = "italic";
+mentionPrix.style.marginTop = "10px";
+mentionPrix.style.marginBottom = "15px";
 
 const resultatPrix = creerElement(
     "p",
     "Chargement des prix..."
 );
 
-blocPrix.append(titrePrix, resultatPrix);
+blocPrix.append(titrePrix, mentionPrix, resultatPrix);
 
 // Charger les prix depuis Supabase
 const prixIngredients = await chargerPrixIngredients();
