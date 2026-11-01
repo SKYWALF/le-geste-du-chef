@@ -15,11 +15,12 @@ function calculerPrixIngredient(ingredient, prixIngredients) {
         ].filter(valeur => valeur != null).join(" ");
     }
 
-    const texteOeuf = nomIngredient
-        .toLowerCase()
-        .trim()
-        .replace(/œ/g, "oe")
-        .replace(/’/g, "'");
+const texteOeuf = nomIngredient
+    .toLowerCase()
+    .trim()
+    .replace(/\s*\([^)]*\)/g, "")
+    .replace(/œ/g, "oe")
+    .replace(/’/g, "'");
 
     const correspondanceOeuf = texteOeuf.match(
         /^(\d+(?:[.,]\d+)?)\s+(?:(?:jaunes?|blancs?)\s+d[' ]?)?oeufs?$/
