@@ -92,3 +92,28 @@ nav{display:flex;justify-content:center;gap:45px;padding:16px;background:white;b
         padding: 20px;
     }
 }
+/* Affichage des recettes sur 3 colonnes */
+.recette-contenu {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    gap: 30px;
+    align-items: start;
+}
+
+/* Placement du coût estimé à droite */
+.bloc-prix {
+    grid-column: 3;
+    grid-row: 1;
+}
+
+/* Adaptation aux téléphones */
+@media (max-width: 900px) {
+    .recette-contenu {
+        grid-template-columns: 1fr;
+    }
+
+    .bloc-prix {
+        grid-column: auto;
+        grid-row: auto;
+    }
+}
