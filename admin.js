@@ -837,8 +837,9 @@ if (boutonVerifierPrix && resultatVerification) {
         `⚠️ ${ingredient} : prix manquant ou ingrédient non reconnu`
     );
 
-    ingredientsManquants.push(ingredient);
-}
+ingredientsManquants.push(ingredient);
+    }
+}); 
 
             const euros = montant => montant.toLocaleString("fr-FR", {
                 style: "currency",
@@ -855,50 +856,9 @@ if (boutonVerifierPrix && resultatVerification) {
 // BOUTON POUR LES PRIX MANQUANTS
 // =====================================
 
-if (ingredientsManquants.length > 0) {
 
-    const boutonManquants = document.createElement("button");
 
-    boutonManquants.type = "button";
-    boutonManquants.textContent =
-        `💰 Renseigner les prix manquants (${ingredientsManquants.length})`;
-
-    boutonManquants.style.cssText = `
-        margin-top: 15px;
-        padding: 12px;
-        background: #b59458;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-    `;
-
-    boutonManquants.addEventListener("click", () => {
-
-        const formulaire = document.getElementById("formulairePrix");
-        const boutonGestion = document.getElementById("gererPrix");
-
-        // Ouvrir le formulaire s'il est fermé
-        if (formulaire.style.display === "none") {
-            boutonGestion.click();
-        }
-
-        // Remplir le champ avec le premier ingrédient manquant
-        document.getElementById("nomIngredient").value =
-            ingredientsManquants[0];
-
-        // Aller au formulaire
-        formulaire.scrollIntoView({
-            behavior: "smooth",
-            block: "start"
-        });
-
-    });
-
-    resultatVerification.appendChild(boutonManquants);
-}
-
-        } catch (erreur) {
+} catch (erreur) {
             console.error(erreur);
 
             resultatVerification.textContent =
