@@ -646,6 +646,7 @@ prixForm.reset();
 
 // Actualiser automatiquement la liste des prix
 await afficherListePrix();
+
 // Actualiser le coût de la recette après l'enregistrement d'un prix
 const boutonVerification = document.getElementById("verifierPrixRecette");
 

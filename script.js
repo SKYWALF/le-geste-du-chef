@@ -353,3 +353,35 @@ document.getElementById("year").textContent =
 // 9. INITIALISATION
 
 chargerRecettes();
+// Afficher le bouton Administration uniquement aux administrateurs
+async function verifierBoutonAdministration() {
+    const bouton = document.getElementById("boutonAdministration");
+
+    if (!bouton) return;
+
+    bouton.style.display = "none";
+
+    // Utiliser le client Supabase déjà configuré sur le site
+if (typeof publicSupabase === "undefined") return;
+
+const { data: { user }, error: erreurConnexion } =
+    await publicSupabase.auth.getUser();
+
+    if (erreurConnexion || !user) return;
+const { data, error } = await publicSupabase
+    .from("admins")
+    .select("user_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+    if (error) {
+        console.error("Vérification administrateur :", error.message);
+        return;
+    }
+
+    if (data) {
+        bouton.style.display = "inline-block";
+    }
+}
+
+document.addEventListener("DOMContentLoaded", verifierBoutonAdministration);

@@ -43,7 +43,14 @@
             </button>
 
         </form>
-
+<!-- Bouton Administration -->
+<button
+    id="boutonAdministration"
+    type="button"
+    style="display: none;"
+>
+    ⚙️ Administration
+</button>
     </header>
 
 
@@ -65,6 +72,21 @@
 
 
     <main>
+        <!-- Espace administration intégré -->
+<section id="administrationIntegree" style="display: none;">
+
+    <button
+        type="button"
+        id="fermerAdministration"
+    >
+        ← Retour au site
+    </button>
+
+    <h2>⚙️ Administration — Le Geste du Chef</h2>
+
+    <div id="contenuAdministration"></div>
+
+</section>
 
         <!-- ========================= -->
         <!-- ACCUEIL -->
@@ -246,7 +268,44 @@
 
     <!-- Fonctionnalités du site -->
     <script src="script.js" defer></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
 
+    const boutonAdmin = document.getElementById("boutonAdministration");
+    const espaceAdmin = document.getElementById("administrationIntegree");
+    const boutonFermer = document.getElementById("fermerAdministration");
+    const contenuPrincipal = document.querySelector("main");
+
+    if (!boutonAdmin || !espaceAdmin || !boutonFermer) return;
+
+    // Ouvrir l'administration
+    boutonAdmin.addEventListener("click", () => {
+        espaceAdmin.style.display = "block";
+
+        // Masquer les autres sections de la page
+        contenuPrincipal.querySelectorAll(":scope > section").forEach(section => {
+            if (section !== espaceAdmin) {
+                section.style.display = "none";
+            }
+        });
+
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    // Fermer l'administration
+    boutonFermer.addEventListener("click", () => {
+        espaceAdmin.style.display = "none";
+
+        // Réafficher les sections du site
+        contenuPrincipal.querySelectorAll(":scope > section").forEach(section => {
+            if (section !== espaceAdmin) {
+                section.style.removeProperty("display");
+            }
+        });
+    });
+
+});
+</script>
 </body>
 
 </html>
