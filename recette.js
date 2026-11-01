@@ -469,10 +469,24 @@ function calculerPrixIngredient(ingredient, prixIngredients) {
         .trim()
         .replace(/^(de\s+|du\s+|d['’])/, "");
 
-    const prix = prixIngredients.find(p =>
-        p.ingredient.toLowerCase().trim() === nom
-    );
+  // Rechercher le prix correspondant à l'ingrédient
+const prix = prixIngredients.find(p =>
+    p.ingredient.toLowerCase().trim() === nom
+);
+// Cas particulier : une gousse de vanille
+if (unite === "gousse" || unite === "gousses") {
 
+    if (nom === "vanille") {
+
+        const prixVanille = prixIngredients.find(p =>
+            p.ingredient.toLowerCase().trim() === "vanille"
+        );
+
+        if (prixVanille) {
+            return quantite * Number(prixVanille.prix_unitaire);
+        }
+    }
+}
     if (!prix) {
         return null;
     }
