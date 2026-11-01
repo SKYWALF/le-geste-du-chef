@@ -852,6 +852,30 @@ ingredientsManquants.push(ingredient);
                 `\n📊 ${reconnus}/${ingredients.length} ingrédients calculés`;
 
             resultatVerification.style.whiteSpace = "pre-line";
+            // Bouton pour accéder à la gestion des prix manquants
+if (ingredientsManquants.length > 0) {
+    const bouton = document.createElement("button");
+
+    bouton.type = "button";
+    bouton.textContent =
+        `💰 Renseigner les prix manquants (${ingredientsManquants.length})`;
+
+    bouton.style.marginTop = "15px";
+
+    bouton.addEventListener("click", () => {
+        const gestionPrix = document.getElementById("formulairePrix");
+
+        if (gestionPrix) {
+            gestionPrix.style.display = "block";
+            gestionPrix.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+        }
+    });
+
+    resultatVerification.appendChild(bouton);
+}
             // =====================================
 // BOUTON POUR LES PRIX MANQUANTS
 // =====================================
