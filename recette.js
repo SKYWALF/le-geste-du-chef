@@ -464,10 +464,12 @@ function calculerPrixIngredient(ingredient, prixIngredients) {
     const quantite = Number(resultat[1].replace(",", "."));
     const unite = resultat[2].toLowerCase();
 
-    const nom = resultat[3]
-        .toLowerCase()
-        .trim()
-        .replace(/^(de\s+|du\s+|d['’])/, "");
+const nom = resultat[3]
+    .toLowerCase()
+    .trim()
+    .replace(/^(de\s+|du\s+|d['’])/, "")
+    .replace(/\s+pour\s+.*$/, "")
+    .trim();
 
   // Rechercher le prix correspondant à l'ingrédient
 const prix = prixIngredients.find(p =>
