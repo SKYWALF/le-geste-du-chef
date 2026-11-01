@@ -49,6 +49,7 @@ message.textContent = "";
 
 document.querySelector(".container").style.display = "none";
 document.getElementById("dashboard").style.display = "block";
+await afficherRecettes();
 });
 // Déconnexion administrateur
 document.getElementById("deconnexion").addEventListener("click", async () => {
@@ -119,6 +120,56 @@ document.getElementById("recetteForm").addEventListener("submit", async (event) 
     }
 
     messageRecette.textContent = "✅ Recette enregistrée avec succès !";
+    await afficherRecettes();
 
     document.getElementById("recetteForm").reset();
 });
+// Afficher les recettes enregistrées dans Supabase
+async function afficherRecettes() {
+    const liste = document.getElementById("listeRecettes");
+
+    liste.textContent = "Chargement des recettes...";
+
+    const { data: recettes, error } = await supabaseClient
+        .from("recettes")
+        .select("id, titre, categorie, publie, date_creation")
+        .order("date_creation", { ascending: false });
+
+    if (error) {
+        liste.textContent = "Erreur : " + error.message;
+        return;
+    }
+
+    liste.replaceChildren();
+
+    if (!recettes || recettes.length === 0) {
+        liste.textContent = "Aucune recette enregistrée.";
+        return;
+    }
+
+    recettes.forEach(recette => {
+        const carte = document.createElement("div");
+
+        carte.style.cssText = `
+            padding: 20px;
+            margin: 15px 0;
+            background: #f7f5f0;
+            border-radius: 8px;
+            border-left: 4px solid #b59458;
+        `;
+
+        const titre = document.createElement("h3");
+        titre.textContent = recette.titre;
+
+        const categorie = document.createElement("p");
+        categorie.textContent = "Catégorie : " + recette.categorie;
+
+        const statut = document.createElement("p");
+        statut.textContent = recette.publie
+            ? "🟢 Publiée"
+            : "🟠 Brouillon";
+
+        carte.append(titre, categorie, statut);
+        liste.appendChild(carte);
+    });
+}
