@@ -13,11 +13,13 @@
     <link rel="stylesheet" href="style.css">
 
     <style>
-        .fiche-recette {
-            max-width: 1000px;
-            margin: 50px auto;
-            padding: 30px;
-        }
+       .fiche-recette {
+    width: 100%;
+    max-width: 1500px;
+    margin: 50px auto;
+    padding: 30px;
+    box-sizing: border-box;
+}
 
         .retour {
             display: inline-block;
@@ -51,12 +53,13 @@
             border-radius: 8px;
         }
 
-        .recette-contenu {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 40px;
-            margin-top: 40px;
-        }
+.recette-contenu {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) minmax(400px, 2fr) minmax(250px, 1fr);
+    gap: 25px;
+    margin-top: 40px;
+    width: 100%;
+}
 
         .recette-contenu h2 {
             border-bottom: 2px solid #b59458;
