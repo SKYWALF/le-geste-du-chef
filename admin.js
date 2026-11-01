@@ -862,16 +862,35 @@ if (ingredientsManquants.length > 0) {
 
     bouton.style.marginTop = "15px";
 
-    bouton.addEventListener("click", () => {
-        const gestionPrix = document.getElementById("formulairePrix");
+if (gestionPrix) {
 
-        if (gestionPrix) {
-            gestionPrix.style.display = "block";
-            gestionPrix.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-            });
-        }
+    // Récupérer le premier ingrédient sans prix
+    const ingredient = ingredientsManquants[0];
+
+    // Retirer la quantité et l'unité
+    const nom = ingredient
+        .replace(
+            /^\d+(?:[.,]\d+)?\s*(?:kg|mg|g|ml|cl|l|pièces?|unités?|gousses?)\s+(?:de\s+|du\s+|d['’])?/i,
+            ""
+        )
+        .replace(/^\d+(?:[.,]\d+)?\s+/, "")
+        .trim();
+
+    // Remplir automatiquement le formulaire
+    const champNom = document.getElementById("nomIngredient");
+
+    if (champNom) {
+        champNom.value = nom;
+    }
+
+    // Afficher la gestion des prix
+    gestionPrix.style.display = "block";
+
+    gestionPrix.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
+}
     });
 
     resultatVerification.appendChild(bouton);
