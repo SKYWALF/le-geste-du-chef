@@ -78,6 +78,94 @@
                 grid-template-columns: 1fr;
             }
         }
+        /* ==========================================
+   DESIGN DES INGRÉDIENTS
+========================================== */
+
+.recette-contenu ul {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+}
+
+.recette-contenu ul li {
+    background: #ffffff;
+    border: 1px solid #e8e2d8;
+    border-left: 4px solid #b59458;
+    border-radius: 8px;
+    padding: 15px 18px;
+    margin-bottom: 12px;
+    font-size: 16px;
+}
+
+/* ==========================================
+   DESIGN DES ÉTAPES DE PRÉPARATION
+========================================== */
+
+.recette-contenu ol {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+    counter-reset: etape;
+}
+
+.recette-contenu ol li {
+    counter-increment: etape;
+    position: relative;
+    background: #ffffff;
+    border: 1px solid #e8e2d8;
+    border-radius: 10px;
+    padding: 20px 20px 20px 70px;
+    margin-bottom: 18px;
+    line-height: 1.7;
+}
+
+.recette-contenu ol li::before {
+    content: counter(etape);
+    position: absolute;
+    left: 18px;
+    top: 18px;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #b59458;
+    color: white;
+    border-radius: 50%;
+    font-weight: bold;
+}
+
+/* ==========================================
+   TITRES DES SECTIONS
+========================================== */
+
+.recette-contenu h2 {
+    font-size: 26px;
+    color: #242424;
+    margin-bottom: 25px;
+    border-bottom: 2px solid #b59458;
+    padding-bottom: 15px;
+}
+
+/* ==========================================
+   ADAPTATION MOBILE
+========================================== */
+
+@media (max-width: 700px) {
+    .recette-contenu {
+        grid-template-columns: 1fr;
+        gap: 25px;
+    }
+
+    .recette-contenu ol li {
+        padding: 18px 15px 18px 65px;
+    }
+
+    .recette-contenu h2 {
+        font-size: 23px;
+    }
+}
     </style>
 </head>
 
