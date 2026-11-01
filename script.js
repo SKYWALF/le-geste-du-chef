@@ -56,7 +56,7 @@ function showRecipes(query = "") {
         carte.className = "card";
 
         const image = document.createElement("img");
-        image.src = recette.image || "images/creme-brulee.jpg";
+        image.src = recette.image || "images/creme.jpg";
         image.alt = recette.title;
         image.loading = "lazy";
 
