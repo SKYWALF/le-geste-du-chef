@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="description"
+          content="Découvrez les recettes et techniques culinaires du Geste du Chef.">
+
+    <title>Recette | Le Geste du Chef</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        .fiche-recette {
+            max-width: 1000px;
+            margin: 50px auto;
+            padding: 30px;
+        }
+
+        .retour {
+            display: inline-block;
+            margin-bottom: 25px;
+            color: #967844;
+            text-decoration: none;
+        }
+
+        .recette-photo {
+            width: 100%;
+            max-height: 450px;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+
+        .recette-titre {
+            font-size: clamp(30px, 5vw, 48px);
+            margin: 25px 0 15px;
+        }
+
+        .recette-infos {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .recette-infos span {
+            padding: 12px 18px;
+            background: #f7f5f0;
+            border-radius: 8px;
+        }
+
+        .recette-contenu {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 40px;
+            margin-top: 40px;
+        }
+
+        .recette-contenu h2 {
+            border-bottom: 2px solid #b59458;
+            padding-bottom: 12px;
+        }
+
+        .recette-contenu li {
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 700px) {
+            .fiche-recette {
+                padding: 20px;
+                margin: 20px auto;
+            }
+
+            .recette-contenu {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="top">
+        <a class="logo" href="index.html">
+            ♨ Le Geste du Chef
+            <small>RECETTES · TECHNIQUES · ASTUCES</small>
+        </a>
+    </header>
+
+    <main class="fiche-recette">
+
+        <a href="index.html#recettes" class="retour">
+            ← Retour aux recettes
+        </a>
+
+        <div id="recetteDetail">
+            <p>Chargement de la recette...</p>
+        </div>
+
+    </main>
+
+    <footer>
+        © <span id="year"></span> Le Geste du Chef
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="recette.js"></script>
+
+</body>
+</html>
