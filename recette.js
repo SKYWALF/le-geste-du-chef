@@ -156,8 +156,8 @@ function analyserIngredient(ingredient) {
     // 2 kg de sucre
 
     const resultat = texte.match(
-        /^(\d+(?:[.,]\d+)?)\s*(kg|mg|g|ml|cl|l|œufs?|oeufs?|pièces?|unités?|gousses?)?\b?\s*(.*)$/i
-    );
+    /^(\d+(?:[.,]\d+)?)\s*(kg|mg|g|ml|cl|l|œufs?|oeufs?|pièces?|unités?|gousses?)?\s*(.*)$/i
+);
 
     if (!resultat) {
         return null;
