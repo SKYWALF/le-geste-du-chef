@@ -198,6 +198,11 @@ if (
     return;
 }
 
+// ==========================================
+// ENREGISTREMENT TERMINÉ
+// RECHERCHE AUTOMATIQUE DES PRIX
+// ==========================================
+
 // Afficher le message de confirmation
 messageRecette.textContent = modification
     ? "✅ Recette modifiée avec succès !"
@@ -209,9 +214,95 @@ recetteEnModification = null;
 // Vider le formulaire
 document.getElementById("recetteForm").reset();
 
-// Actualiser la liste
+// Actualiser la liste des recettes
 await afficherRecettes();
+
+// ==========================================
+// RECHERCHER LES PRIX AUTOMATIQUEMENT
+// ==========================================
+
+// Uniquement pour les recettes publiées
+if (recette.publie) {
+
+    messageRecette.textContent +=
+        "\n🔎 Recherche automatique des prix en cours...";
+
+    try {
+
+        // Récupérer la session administrateur
+        const { data: sessionData, error: sessionError } =
+            await supabaseClient.auth.getSession();
+
+        if (sessionError || !sessionData.session) {
+            throw new Error("Session administrateur introuvable.");
+        }
+
+        // Appeler la fonction Supabase
+        const { data, error } =
+            await supabaseClient.functions.invoke(
+                "actualiser-prix",
+                {
+                    body: {}
+                }
+            );
+
+        if (error) {
+            throw error;
+        }
+
+        if (!data?.succes) {
+            throw new Error(
+                data?.erreur || "La recherche des prix a échoué."
+            );
+        }
+
+        const prixAjoutes = Number(data.prix_ajoutes || 0);
+
+        // Afficher le résultat
+        if (prixAjoutes > 0) {
+
+            messageRecette.textContent +=
+                "\n✅ " + prixAjoutes +
+                " nouveau(x) prix récupéré(s) automatiquement !";
+
+        } else {
+
+            messageRecette.textContent +=
+                "\nℹ️ Aucun nouveau prix disponible pour le moment.";
+
+        }
+
+        // Actualiser les prix affichés
+        if (typeof afficherListePrix === "function") {
+            await afficherListePrix();
+        }
+
+        // Actualiser les ingrédients sans prix
+        if (typeof detecterPrixManquants === "function") {
+            await detecterPrixManquants();
+        }
+
+        console.log(
+            "Résultat de la recherche automatique :",
+            data
+        );
+
+    } catch (erreur) {
+
+        console.error(
+            "Erreur de recherche automatique des prix :",
+            erreur
+        );
+
+        messageRecette.textContent +=
+            "\n⚠️ Recette enregistrée, mais recherche des prix indisponible.";
+
+    }
+}
+
 });
+
+// Afficher les recettes enregistrées dans Supabase
 // Afficher les recettes enregistrées dans Supabase
 async function afficherRecettes() {
     const liste = document.getElementById("listeRecettes");
