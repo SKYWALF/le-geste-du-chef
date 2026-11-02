@@ -121,9 +121,15 @@ document.getElementById("recetteForm").addEventListener("submit", async (event) 
         titre: document.getElementById("titreRecette").value.trim(),
         categorie: document.getElementById("categorieRecette").value,
         description: document.getElementById("descriptionRecette").value.trim(),
-        temps_preparation: Number(document.getElementById("preparationRecette").value),
-        temps_cuisson: Number(document.getElementById("cuissonRecette").value),
-        portions: Number(document.getElementById("portionsRecette").value),
+       temps_preparation: Number(document.getElementById("preparationRecette").value),
+
+temps_cuisson: Number(document.getElementById("cuissonRecette").value),
+
+temps_repos: document.getElementById("reposRecette").value.trim() === ""
+    ? null
+    : Number(document.getElementById("reposRecette").value),
+
+portions: Number(document.getElementById("portionsRecette").value),
         ingredients: lireLignes("ingredientsRecette"),
         etapes: lireLignes("etapesRecette"),
   image_url: null,
@@ -385,11 +391,15 @@ document.getElementById("fichierPhoto").value = "";
     document.getElementById("preparationRecette").value =
         recette.temps_preparation ?? 0;
 
-    document.getElementById("cuissonRecette").value =
-        recette.temps_cuisson ?? 0;
+document.getElementById("cuissonRecette").value =
+    recette.temps_cuisson ?? 0;
 
-    document.getElementById("portionsRecette").value =
-        recette.portions ?? 1;
+// Récupérer le temps de repos enregistré
+document.getElementById("reposRecette").value =
+    recette.temps_repos ?? "";
+
+document.getElementById("portionsRecette").value =
+    recette.portions ?? 1;
 
     // Une ligne par ingrédient
     document.getElementById("ingredientsRecette").value =
