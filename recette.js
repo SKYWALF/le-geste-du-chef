@@ -192,99 +192,28 @@ function analyserIngredient(ingredient) {
 // 9. ARRONDIR LES QUANTITÉS
 // ==========================================
 
+// ==========================================
+// ARRONDIR TOUS LES INGRÉDIENTS
+// ==========================================
+
 function arrondirQuantite(quantite, unite, nom) {
 
-    const uniteNormalisee = unite.toLowerCase();
-
-    const nomNormalise = nom.toLowerCase();
-
-    // Œufs : arrondi au quart d'œuf
-    if (
-        nomNormalise.includes("œuf") ||
-        nomNormalise.includes("oeuf")
-    ) {
-
-        return Math.round(quantite * 4) / 4;
-    }
-
-    // Petites quantités : conserver une décimale
-    if (
-        nomNormalise.includes("levure") ||
-        nomNormalise.includes("sel") ||
-        nomNormalise.includes("agar") ||
-        nomNormalise.includes("gélatine") ||
-        nomNormalise.includes("gelatine")
-    ) {
-
-        return Math.round(quantite * 10) / 10;
-    }
-
-    // Grammes et millilitres : arrondir à l'entier
-    if (
-        uniteNormalisee === "g" ||
-        uniteNormalisee === "ml"
-    ) {
-
-        return Math.round(quantite);
-    }
-
-    // Kilogrammes, litres et centilitres
-    if (
-        ["kg", "l", "cl"].includes(uniteNormalisee)
-    ) {
-
-        return Math.round(quantite * 100) / 100;
-    }
-
-    // Autres ingrédients
-    return Math.round(quantite * 100) / 100;
+    // Arrondir à l'entier le plus proche
+    // Ne jamais afficher moins de 1
+    return Math.max(1, Math.round(quantite));
 }
 
 // ==========================================
 // 10. AFFICHER LES QUANTITÉS
 // ==========================================
 
+// ==========================================
+// AFFICHAGE DES QUANTITÉS ARRONDIES
+// ==========================================
+
 function formaterQuantite(quantite, nom) {
 
-    const nomNormalise = nom.toLowerCase();
-
-    // Fractions pour les œufs
-    if (
-        nomNormalise.includes("œuf") ||
-        nomNormalise.includes("oeuf")
-    ) {
-
-        const entier = Math.floor(quantite);
-
-        const fraction = Math.round(
-            (quantite - entier) * 4
-        );
-
-        const fractions = {
-            0: "",
-            1: "¼",
-            2: "½",
-            3: "¾"
-        };
-
-        if (fraction === 4) {
-            return String(entier + 1);
-        }
-
-        if (entier === 0) {
-            return fractions[fraction] || "0";
-        }
-
-        if (fraction === 0) {
-            return String(entier);
-        }
-
-        return entier + " " + fractions[fraction];
-    }
-
-    return quantite.toLocaleString("fr-FR", {
-        maximumFractionDigits: 2
-    });
+    return Math.round(quantite).toLocaleString("fr-FR");
 }
 
 // ==========================================
@@ -517,8 +446,42 @@ async function chargerRecette() {
 
     nombrePortions.id = "nombrePortions";
 
-    const minimumPortions =
-        Math.min(MIN_PORTIONS, portionsOriginales);
+// ==========================================
+// MINIMUM AUTOMATIQUE SELON LES INGRÉDIENTS
+// ==========================================
+
+const ingredientsPourMinimum =
+    Array.isArray(recette.ingredients)
+        ? recette.ingredients
+        : [];
+
+let minimumPortions = 1;
+
+ingredientsPourMinimum.forEach(ingredient => {
+
+    const analyse = analyserIngredient(ingredient);
+
+    if (!analyse || analyse.quantite <= 0) {
+        return;
+    }
+
+    // Nombre minimum de personnes pour obtenir
+    // au moins 1 unité de cet ingrédient
+    const minimumIngredient = Math.ceil(
+        portionsOriginales / analyse.quantite
+    );
+
+    minimumPortions = Math.max(
+        minimumPortions,
+        minimumIngredient
+    );
+});
+
+// Ne pas dépasser le maximum autorisé
+minimumPortions = Math.min(
+    MAX_PORTIONS,
+    minimumPortions
+);
 
     nombrePortions.min = minimumPortions;
 
@@ -532,6 +495,30 @@ async function chargerRecette() {
         labelPortions,
         nombrePortions
     );
+    // ==========================================
+// AVERTISSEMENT SUR LES PROPORTIONS
+// ==========================================
+
+const avertissementProportions =
+    document.createElement("p");
+
+avertissementProportions.textContent =
+    "⚠️ Attention : lorsque vous modifiez le nombre de personnes, " +
+    "les quantités des ingrédients sont automatiquement recalculées " +
+    "et arrondies à l'unité supérieure ou inférieure. " +
+    "Ces arrondis peuvent modifier les proportions et influencer " +
+    "le résultat final de la recette, notamment en pâtisserie.";
+
+avertissementProportions.style.cssText = `
+    margin-top: 12px;
+    padding: 14px 18px;
+    background: #fff8e8;
+    border-left: 4px solid #b59458;
+    border-radius: 8px;
+    color: #795b2d;
+    font-size: 14px;
+    line-height: 1.6;
+`;
 
     // ======================================
     // 16. CONTENU PRINCIPAL
@@ -784,14 +771,15 @@ async function chargerRecette() {
         blocPrix
     );
 
-    recetteDetail.append(
-        photo,
-        titre,
-        description,
-        infos,
-        selecteurPortions,
-        contenu
-    );
+recetteDetail.append(
+    photo,
+    titre,
+    description,
+    infos,
+    selecteurPortions,
+    avertissementProportions,
+    contenu
+);
 }
 
 // ==========================================
