@@ -1,34 +1,52 @@
 // ==========================================
 // LE GESTE DU CHEF
-// Affichage d'une fiche de recette complète
+// FICHE RECETTE - VERSION AMÉLIORÉE
 // ==========================================
 
+// ==========================================
 // 1. CONNEXION À SUPABASE
+// ==========================================
 
-const SUPABASE_URL = "https://xlnjmhkuhjqunwvkkykh.supabase.co";
+const SUPABASE_URL =
+    "https://xlnjmhkuhjqunwvkkykh.supabase.co";
 
-const SUPABASE_KEY = "sb_publishable_cxU-UsbHYO9S6RtVHEXbJw_-Y42Tryt";
+const SUPABASE_KEY =
+    "sb_publishable_cxU-UsbHYO9S6RtVHEXbJw_-Y42Tryt";
 
 const supabaseClient = window.supabase.createClient(
     SUPABASE_URL,
     SUPABASE_KEY
 );
 
+// ==========================================
 // 2. ÉLÉMENTS DE LA PAGE
+// ==========================================
 
-const recetteDetail = document.getElementById("recetteDetail");
+const recetteDetail =
+    document.getElementById("recetteDetail");
 
-document.getElementById("year").textContent =
-    new Date().getFullYear();
+const annee = document.getElementById("year");
 
-// 3. RÉCUPÉRER L'IDENTIFIANT DE LA RECETTE
+if (annee) {
+    annee.textContent = new Date().getFullYear();
+}
 
-const params = new URLSearchParams(window.location.search);
+// ==========================================
+// 3. IDENTIFIANT DE LA RECETTE
+// ==========================================
+
+const params = new URLSearchParams(
+    window.location.search
+);
+
 const recetteId = params.get("id");
 
+// ==========================================
 // 4. CRÉER UN ÉLÉMENT HTML
+// ==========================================
 
 function creerElement(balise, texte, classe = "") {
+
     const element = document.createElement(balise);
 
     element.textContent = texte;
@@ -40,76 +58,342 @@ function creerElement(balise, texte, classe = "") {
     return element;
 }
 
-// 5. AFFICHER LES INGRÉDIENTS OU LES ÉTAPES
+// ==========================================
+// 5. TRANSFORMER UN INGRÉDIENT EN TEXTE
+// ==========================================
+
+function texteIngredient(ingredient) {
+
+    if (typeof ingredient === "string") {
+        return ingredient;
+    }
+
+    if (ingredient && typeof ingredient === "object") {
+
+        const texte = [
+            ingredient.quantite,
+            ingredient.unite,
+            ingredient.nom
+        ]
+            .filter(valeur =>
+                valeur !== undefined &&
+                valeur !== null
+            )
+            .join(" ");
+
+        return texte.trim() ||
+            ingredient.description ||
+            ingredient.texte ||
+            "";
+    }
+
+    return "";
+}
+
+// ==========================================
+// 6. CRÉER UNE LISTE
+// ==========================================
 
 function creerListe(elements, ordonnee = false) {
+
     const liste = document.createElement(
         ordonnee ? "ol" : "ul"
     );
 
-    if (!Array.isArray(elements) || elements.length === 0) {
+    if (
+        !Array.isArray(elements) ||
+        elements.length === 0
+    ) {
+
         liste.appendChild(
-            creerElement("li", "Informations à venir.")
+            creerElement(
+                "li",
+                "Informations à venir."
+            )
         );
 
         return liste;
     }
 
     elements.forEach(element => {
-        let texte = "";
 
-        if (typeof element === "string") {
-            texte = element;
-        } else if (element && typeof element === "object") {
-            texte = [
-                element.quantite,
-                element.unite,
-                element.nom
-            ].filter(valeur => valeur !== undefined && valeur !== null)
-             .join(" ");
-
-            if (!texte.trim()) {
-                texte = element.description || element.texte || "";
-            }
-        }
+        const texte = texteIngredient(element);
 
         if (texte.trim()) {
-            liste.appendChild(creerElement("li", texte));
+
+            liste.appendChild(
+                creerElement("li", texte)
+            );
         }
     });
 
     return liste;
 }
 
-// 6. CHARGER LA RECETTE DEPUIS SUPABASE
+// ==========================================
+// 7. CONFIGURATION DES PORTIONS
+// ==========================================
+
+// Nombre minimum de personnes
+const MIN_PORTIONS = 2;
+
+// Nombre maximum
+const MAX_PORTIONS = 100;
+
+// ==========================================
+// 8. RECONNAÎTRE LES QUANTITÉS
+// ==========================================
+
+function analyserIngredient(ingredient) {
+
+    const texte = texteIngredient(ingredient).trim();
+
+    // Reconnaître :
+    // 500g de farine
+    // 500 g de farine
+    // 230ml eau
+    // 1,33 œufs
+    // 2 kg de sucre
+
+    const resultat = texte.match(
+        /^(\d+(?:[.,]\d+)?)\s*(kg|mg|g|ml|cl|l|œufs?|oeufs?|pièces?|unités?|gousses?)?\b?\s*(.*)$/i
+    );
+
+    if (!resultat) {
+        return null;
+    }
+
+    const quantite = Number(
+        resultat[1].replace(",", ".")
+    );
+
+    if (!Number.isFinite(quantite)) {
+        return null;
+    }
+
+    let unite = resultat[2] || "";
+    let nom = resultat[3] || "";
+
+    // Corriger le cas des œufs
+    if (/^(œufs?|oeufs?)$/i.test(unite)) {
+
+        nom = unite + (nom ? " " + nom : "");
+        unite = "";
+    }
+
+    return {
+        quantite,
+        unite: unite.trim(),
+        nom: nom.trim()
+    };
+}
+
+// ==========================================
+// 9. ARRONDIR LES QUANTITÉS
+// ==========================================
+
+function arrondirQuantite(quantite, unite, nom) {
+
+    const uniteNormalisee = unite.toLowerCase();
+
+    const nomNormalise = nom.toLowerCase();
+
+    // Œufs : arrondi au quart d'œuf
+    if (
+        nomNormalise.includes("œuf") ||
+        nomNormalise.includes("oeuf")
+    ) {
+
+        return Math.round(quantite * 4) / 4;
+    }
+
+    // Petites quantités : conserver une décimale
+    if (
+        nomNormalise.includes("levure") ||
+        nomNormalise.includes("sel") ||
+        nomNormalise.includes("agar") ||
+        nomNormalise.includes("gélatine") ||
+        nomNormalise.includes("gelatine")
+    ) {
+
+        return Math.round(quantite * 10) / 10;
+    }
+
+    // Grammes et millilitres : arrondir à l'entier
+    if (
+        uniteNormalisee === "g" ||
+        uniteNormalisee === "ml"
+    ) {
+
+        return Math.round(quantite);
+    }
+
+    // Kilogrammes, litres et centilitres
+    if (
+        ["kg", "l", "cl"].includes(uniteNormalisee)
+    ) {
+
+        return Math.round(quantite * 100) / 100;
+    }
+
+    // Autres ingrédients
+    return Math.round(quantite * 100) / 100;
+}
+
+// ==========================================
+// 10. AFFICHER LES QUANTITÉS
+// ==========================================
+
+function formaterQuantite(quantite, nom) {
+
+    const nomNormalise = nom.toLowerCase();
+
+    // Fractions pour les œufs
+    if (
+        nomNormalise.includes("œuf") ||
+        nomNormalise.includes("oeuf")
+    ) {
+
+        const entier = Math.floor(quantite);
+
+        const fraction = Math.round(
+            (quantite - entier) * 4
+        );
+
+        const fractions = {
+            0: "",
+            1: "¼",
+            2: "½",
+            3: "¾"
+        };
+
+        if (fraction === 4) {
+            return String(entier + 1);
+        }
+
+        if (entier === 0) {
+            return fractions[fraction] || "0";
+        }
+
+        if (fraction === 0) {
+            return String(entier);
+        }
+
+        return entier + " " + fractions[fraction];
+    }
+
+    return quantite.toLocaleString("fr-FR", {
+        maximumFractionDigits: 2
+    });
+}
+
+// ==========================================
+// 11. AJUSTER UN INGRÉDIENT
+// ==========================================
+
+function ajusterIngredient(ingredient, coefficient) {
+
+    const analyse = analyserIngredient(ingredient);
+
+    // Si aucune quantité n'est reconnue,
+    // conserver le texte original
+    if (!analyse) {
+        return texteIngredient(ingredient);
+    }
+
+    const nouvelleQuantite =
+        analyse.quantite * coefficient;
+
+    const quantiteArrondie = arrondirQuantite(
+        nouvelleQuantite,
+        analyse.unite,
+        analyse.nom
+    );
+
+    const quantiteAffichee = formaterQuantite(
+        quantiteArrondie,
+        analyse.nom
+    );
+
+    const unite = analyse.unite
+        ? " " + analyse.unite
+        : "";
+
+    const nom = analyse.nom
+        ? " " + analyse.nom
+        : "";
+
+    return quantiteAffichee + unite + nom;
+}
+
+// ==========================================
+// 12. CHARGER LES PRIX DES INGRÉDIENTS
+// ==========================================
+
+async function chargerPrixIngredients() {
+
+    const { data, error } = await supabaseClient
+        .from("prix_ingredients")
+        .select(
+            "ingredient, prix_unitaire, unite, source"
+        );
+
+    if (error) {
+
+        console.error(
+            "Erreur de récupération des prix :",
+            error.message
+        );
+
+        return [];
+    }
+
+    return data || [];
+}
+
+// ==========================================
+// 13. CHARGER LA RECETTE
+// ==========================================
 
 async function chargerRecette() {
 
-    if (!recetteId) {
-        recetteDetail.textContent = "Aucune recette sélectionnée.";
+    if (!recetteDetail) {
         return;
     }
 
-    const { data: recette, error } = await supabaseClient
-        .from("recettes")
-        .select(`
-            id,
-            titre,
-            description,
-            categorie,
-            temps_preparation,
-            temps_cuisson,
-            portions,
-            ingredients,
-            etapes,
-            image_url
-        `)
-        .eq("id", recetteId)
-        .eq("publie", true)
-        .maybeSingle();
+    if (!recetteId) {
+
+        recetteDetail.textContent =
+            "Aucune recette sélectionnée.";
+
+        return;
+    }
+
+    const { data: recette, error } =
+        await supabaseClient
+            .from("recettes")
+            .select(`
+                id,
+                titre,
+                description,
+                categorie,
+                temps_preparation,
+                temps_cuisson,
+                portions,
+                ingredients,
+                etapes,
+                image_url
+            `)
+            .eq("id", recetteId)
+            .eq("publie", true)
+            .maybeSingle();
 
     if (error) {
-        console.error("Erreur Supabase :", error.message);
+
+        console.error(
+            "Erreur Supabase :",
+            error.message
+        );
 
         recetteDetail.textContent =
             "Impossible de charger cette recette.";
@@ -118,34 +402,49 @@ async function chargerRecette() {
     }
 
     if (!recette) {
+
         recetteDetail.textContent =
             "Cette recette est introuvable ou n'est pas publiée.";
 
         return;
     }
 
-    // 7. PRÉPARER LA PAGE
+    // ======================================
+    // 14. PRÉPARER LA PAGE
+    // ======================================
 
     recetteDetail.replaceChildren();
 
     document.title =
         `${recette.titre} | Le Geste du Chef`;
 
+    // ======================================
     // PHOTO
+    // ======================================
 
     const photo = document.createElement("img");
 
     photo.className = "recette-photo";
-    photo.src = recette.image_url || "images/creme.jpg";
-    photo.alt = recette.titre || "Photo de la recette";
+
+    photo.src =
+        recette.image_url || "images/creme.jpg";
+
+    photo.alt =
+        recette.titre || "Photo de la recette";
 
     photo.addEventListener("error", () => {
-        if (!photo.src.endsWith("/images/creme.jpg")) {
+
+        if (
+            !photo.src.endsWith("/images/creme.jpg")
+        ) {
+
             photo.src = "images/creme.jpg";
         }
     });
 
+    // ======================================
     // TITRE
+    // ======================================
 
     const titre = creerElement(
         "h1",
@@ -153,213 +452,319 @@ async function chargerRecette() {
         "recette-titre"
     );
 
+    // ======================================
     // DESCRIPTION
+    // ======================================
 
     const description = creerElement(
         "p",
         recette.description || ""
     );
 
+    // ======================================
     // INFORMATIONS
+    // ======================================
 
     const infos = document.createElement("div");
+
     infos.className = "recette-infos";
 
-    const preparation = Number(recette.temps_preparation) || 0;
-    const cuisson = Number(recette.temps_cuisson) || 0;
+    const preparation =
+        Number(recette.temps_preparation) || 0;
+
+    const cuisson =
+        Number(recette.temps_cuisson) || 0;
+
+    const portionsOriginales = Math.max(
+        1,
+        Math.round(Number(recette.portions) || 1)
+    );
 
     [
         `🍽️ ${recette.categorie || "Cuisine"}`,
         `🔪 Préparation : ${preparation} min`,
         `🔥 Cuisson : ${cuisson} min`,
-        `👥 ${recette.portions || 1} portion(s)`
+        `👥 ${portionsOriginales} portion(s)`
     ].forEach(info => {
-        infos.appendChild(creerElement("span", info));
+
+        infos.appendChild(
+            creerElement("span", info)
+        );
     });
-// ==========================================
-// SÉLECTEUR DU NOMBRE DE PORTIONS
-// ==========================================
 
-const selecteurPortions = document.createElement("div");
-selecteurPortions.className = "selecteur-portions";
+    // ======================================
+    // 15. SÉLECTEUR DE PORTIONS
+    // ======================================
 
-const labelPortions = document.createElement("label");
-labelPortions.textContent = "🍽️ Nombre de personnes : ";
-labelPortions.htmlFor = "nombrePortions";
+    const selecteurPortions =
+        document.createElement("div");
 
-const nombrePortions = document.createElement("input");
-nombrePortions.type = "number";
-nombrePortions.id = "nombrePortions";
-nombrePortions.min = "1";
-nombrePortions.max = "100";
-nombrePortions.value = recette.portions || 1;
+    selecteurPortions.className =
+        "selecteur-portions";
 
-selecteurPortions.append(labelPortions, nombrePortions);
-    // CONTENU PRINCIPAL
+    const labelPortions =
+        document.createElement("label");
+
+    labelPortions.textContent =
+        "🍽️ Nombre de personnes : ";
+
+    labelPortions.htmlFor = "nombrePortions";
+
+    const nombrePortions =
+        document.createElement("input");
+
+    nombrePortions.type = "number";
+
+    nombrePortions.id = "nombrePortions";
+
+    const minimumPortions =
+        Math.min(MIN_PORTIONS, portionsOriginales);
+
+    nombrePortions.min = minimumPortions;
+
+    nombrePortions.max = MAX_PORTIONS;
+
+    nombrePortions.step = "1";
+
+    nombrePortions.value = portionsOriginales;
+
+    selecteurPortions.append(
+        labelPortions,
+        nombrePortions
+    );
+
+    // ======================================
+    // 16. CONTENU PRINCIPAL
+    // ======================================
 
     const contenu = document.createElement("div");
+
     contenu.className = "recette-contenu";
 
+    // ======================================
     // INGRÉDIENTS
+    // ======================================
 
-    const blocIngredients = document.createElement("section");
+    const blocIngredients =
+        document.createElement("section");
 
     blocIngredients.appendChild(
         creerElement("h2", "Ingrédients")
     );
 
-   let listeIngredients = creerListe(recette.ingredients);
-
-blocIngredients.appendChild(listeIngredients);
-// ==========================================
-// CALCUL AUTOMATIQUE DES PORTIONS
-// ==========================================
-
-const portionsOriginales = Number(recette.portions) || 1;
-
-nombrePortions.addEventListener("input", () => {
-
-    const nouvellesPortions = Number(nombrePortions.value);
-
-    if (!Number.isInteger(nouvellesPortions) ||
-        nouvellesPortions < 1 ||
-        nouvellesPortions > 100) {
-        return;
-    }
-
-    const coefficient = nouvellesPortions / portionsOriginales;
-
-    const ingredientsAjustes = (recette.ingredients || []).map(ingredient => {
-
-        // Ingrédient enregistré sous forme de texte
-        if (typeof ingredient === "string") {
-
-            return ingredient.replace(
-                /^(\d+(?:[.,]\d+)?)(?=\s|$)/,
-                (nombre) => {
-                    const quantite = Number(nombre.replace(",", "."));
-                    const resultat = Math.round(quantite * coefficient * 100) / 100;
-
-                    return String(resultat).replace(".", ",");
-                }
-            );
-        }
-
-        // Ingrédient enregistré avec une quantité séparée
-        if (ingredient && typeof ingredient === "object") {
-
-            const quantite = Number(
-                String(ingredient.quantite).replace(",", ".")
-            );
-
-            if (Number.isFinite(quantite)) {
-                return {
-                    ...ingredient,
-                    quantite: Math.round(quantite * coefficient * 100) / 100
-                };
-            }
-        }
-
-        return ingredient;
-    });
-
-    listeIngredients.replaceWith(
-        creerListe(ingredientsAjustes)
+    let listeIngredients = creerListe(
+        recette.ingredients
     );
 
-    // Garder la référence vers la nouvelle liste
-    listeIngredients = blocIngredients.querySelector("ul");
-});
-// ==========================================
-// AFFICHAGE DU COÛT DE LA RECETTE
-// ==========================================
+    blocIngredients.appendChild(
+        listeIngredients
+    );
 
-const blocPrix = document.createElement("section");
-blocPrix.className = "bloc-prix";
+    // ======================================
+    // 17. BLOC DU COÛT MATIÈRE
+    // ======================================
 
-const titrePrix = creerElement(
-    "h2",
-    "💰 Coût estimé de la recette"
-);
-const mentionPrix = creerElement(
-    "p",
-    "ℹ️ Prix indicatifs : le coût peut varier selon les marques, les magasins et le lieu d'achat."
-);
+    const blocPrix = document.createElement("section");
 
-mentionPrix.style.fontSize = "13px";
-mentionPrix.style.color = "#777";
-mentionPrix.style.fontStyle = "italic";
-mentionPrix.style.marginTop = "10px";
-mentionPrix.style.marginBottom = "15px";
+    blocPrix.className = "bloc-prix";
 
-const resultatPrix = creerElement(
-    "p",
-    "Chargement des prix..."
-);
+    const titrePrix = creerElement(
+        "h2",
+        "💰 Coût estimé de la recette"
+    );
 
-blocPrix.append(titrePrix, mentionPrix, resultatPrix);
+    const mentionPrix = creerElement(
+        "p",
+        "ℹ️ Prix indicatifs : le coût peut varier selon les marques, les magasins et le lieu d'achat."
+    );
 
-// Charger les prix depuis Supabase
-const prixIngredients = await chargerPrixIngredients();
+    mentionPrix.style.fontSize = "13px";
+    mentionPrix.style.color = "#777";
+    mentionPrix.style.fontStyle = "italic";
+    mentionPrix.style.marginTop = "10px";
+    mentionPrix.style.marginBottom = "15px";
 
-function actualiserPrix() {
+    const resultatPrix = creerElement(
+        "p",
+        "Chargement des prix..."
+    );
 
-    const portions = Number(nombrePortions.value);
+    blocPrix.append(
+        titrePrix,
+        mentionPrix,
+        resultatPrix
+    );
 
-    if (!Number.isInteger(portions) || portions < 1 || portions > 100) {
-        return;
-    }
+    // ======================================
+    // 18. CHARGER LES PRIX
+    // ======================================
 
-    const coefficient = portions / portionsOriginales;
+    const prixIngredients =
+        await chargerPrixIngredients();
 
-    let total = 0;
-    let ingredientsConnus = 0;
+    // ======================================
+    // 19. ACTUALISER LES INGRÉDIENTS
+    // ======================================
 
-    const ingredients = Array.isArray(recette.ingredients)
-        ? recette.ingredients
-        : [];
+    function actualiserIngredients() {
 
-    ingredients.forEach(ingredient => {
+        const portions =
+            Number(nombrePortions.value);
 
-        const prix = calculerPrixIngredient(
-            ingredient,
-            prixIngredients
+        if (
+            !Number.isInteger(portions) ||
+            portions < minimumPortions ||
+            portions > MAX_PORTIONS
+        ) {
+            return;
+        }
+
+        const coefficient =
+            portions / portionsOriginales;
+
+        const ingredientsOriginaux =
+            Array.isArray(recette.ingredients)
+                ? recette.ingredients
+                : [];
+
+        const ingredientsAjustes =
+            ingredientsOriginaux.map(ingredient =>
+                ajusterIngredient(
+                    ingredient,
+                    coefficient
+                )
+            );
+
+        const nouvelleListe =
+            creerListe(ingredientsAjustes);
+
+        listeIngredients.replaceWith(
+            nouvelleListe
         );
 
-        if (prix !== null && Number.isFinite(prix)) {
-            total += prix * coefficient;
-            ingredientsConnus++;
-        }
-    });
-
-    if (ingredientsConnus === 0) {
-        resultatPrix.textContent =
-            "Prix indisponible : aucun ingrédient reconnu.";
-        return;
+        listeIngredients = nouvelleListe;
     }
 
-    const euros = montant => montant.toLocaleString(
-        "fr-FR",
-        {
-            style: "currency",
-            currency: "EUR"
+    // ======================================
+    // 20. ACTUALISER LE COÛT MATIÈRE
+    // ======================================
+
+    function actualiserPrix() {
+
+        const portions =
+            Number(nombrePortions.value);
+
+        if (
+            !Number.isInteger(portions) ||
+            portions < minimumPortions ||
+            portions > MAX_PORTIONS
+        ) {
+            return;
         }
+
+        const coefficient =
+            portions / portionsOriginales;
+
+        let total = 0;
+        let ingredientsConnus = 0;
+
+        const ingredients =
+            Array.isArray(recette.ingredients)
+                ? recette.ingredients
+                : [];
+
+        ingredients.forEach(ingredient => {
+
+            if (
+                typeof window.calculerPrixIngredient
+                !== "function"
+            ) {
+                return;
+            }
+
+            const prix =
+                window.calculerPrixIngredient(
+                    ingredient,
+                    prixIngredients
+                );
+
+            if (
+                prix !== null &&
+                Number.isFinite(prix)
+            ) {
+
+                total += prix * coefficient;
+
+                ingredientsConnus++;
+            }
+        });
+
+        if (ingredientsConnus === 0) {
+
+            resultatPrix.textContent =
+                "Prix indisponible : aucun ingrédient reconnu.";
+
+            return;
+        }
+
+        const euros = montant =>
+            montant.toLocaleString("fr-FR", {
+                style: "currency",
+                currency: "EUR"
+            });
+
+        resultatPrix.textContent =
+            `Coût connu : ${euros(total)} | ` +
+            `Par personne : ${euros(total / portions)} ` +
+            `(${ingredientsConnus}/${ingredients.length} ingrédients calculés)`;
+    }
+
+    // ======================================
+    // 21. CHANGEMENT DU NOMBRE DE PERSONNES
+    // ======================================
+
+    function actualiserPortions() {
+
+        actualiserIngredients();
+
+        actualiserPrix();
+    }
+
+    nombrePortions.addEventListener(
+        "input",
+        actualiserPortions
     );
 
-    resultatPrix.textContent =
-        `Coût connu : ${euros(total)} | ` +
-        `Par personne : ${euros(total / portions)} ` +
-        `(${ingredientsConnus}/${ingredients.length} ingrédients calculés)`;
-}
+    // Corriger une valeur trop petite ou trop grande
+    nombrePortions.addEventListener("change", () => {
 
-// Actualiser lorsque le nombre de personnes change
-nombrePortions.addEventListener("input", actualiserPrix);
+        let valeur = Number(nombrePortions.value);
 
-// Premier calcul
-actualiserPrix();
-    // PRÉPARATION
+        if (!Number.isFinite(valeur)) {
+            valeur = portionsOriginales;
+        }
 
-    const blocPreparation = document.createElement("section");
+        valeur = Math.round(valeur);
+
+        valeur = Math.max(
+            minimumPortions,
+            Math.min(MAX_PORTIONS, valeur)
+        );
+
+        nombrePortions.value = valeur;
+
+        actualiserPortions();
+    });
+
+    // Premier calcul
+    actualiserPrix();
+
+    // ======================================
+    // 22. PRÉPARATION
+    // ======================================
+
+    const blocPreparation =
+        document.createElement("section");
 
     blocPreparation.appendChild(
         creerElement("h2", "Préparation")
@@ -369,47 +774,28 @@ actualiserPrix();
         creerListe(recette.etapes, true)
     );
 
-    // ASSEMBLAGE
+    // ======================================
+    // 23. ASSEMBLAGE DE LA PAGE
+    // ======================================
 
-contenu.append(blocIngredients, blocPreparation, blocPrix);
+    contenu.append(
+        blocIngredients,
+        blocPreparation,
+        blocPrix
+    );
 
     recetteDetail.append(
         photo,
         titre,
         description,
-      infos,
-    selecteurPortions,
-    contenu
+        infos,
+        selecteurPortions,
+        contenu
     );
 }
-// ==========================================
-// RÉCUPÉRATION DES PRIX DES INGRÉDIENTS
-// ==========================================
-
-async function chargerPrixIngredients() {
-
-    const { data, error } = await supabaseClient
-        .from("prix_ingredients")
-        .select("ingredient, prix_unitaire, unite, source");
-
-    if (error) {
-        console.error("Erreur de récupération des prix :", error.message);
-        return [];
-    }
-
-    return data || [];
-
-}
-// ==========================================
-// CALCUL DU PRIX D'UN INGRÉDIENT
-// ==========================================
 
 // ==========================================
-// CALCUL DU PRIX D'UN INGRÉDIENT
+// 24. DÉMARRAGE
 // ==========================================
-
-
-// 8. DÉMARRAGE
 
 chargerRecette();
-// Rendre le calculateur disponible pour l'administration
