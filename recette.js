@@ -431,18 +431,38 @@ async function chargerRecette() {
 
     const cuisson =
         Number(recette.temps_cuisson) || 0;
+        // Temps de repos facultatif
+const repos = Number(recette.temps_repos) || 0;
 
     const portionsOriginales = Math.max(
         1,
         Math.round(Number(recette.portions) || 1)
     );
 
-[
+// ==========================================
+// INFORMATIONS DE LA RECETTE
+// ==========================================
+
+const informationsRecette = [
     `🍽️ ${recette.categorie || "Cuisine"}`,
     `🥄 Préparation : ${formaterDuree(preparation)}`,
-    `🔥 Cuisson : ${formaterDuree(cuisson)}`,
+    `🔥 Cuisson : ${formaterDuree(cuisson)}`
+];
+
+// Afficher le repos uniquement si nécessaire
+if (repos > 0) {
+    informationsRecette.push(
+        `🕒 Repos : ${formaterDuree(repos)}`
+    );
+}
+
+// Nombre de portions
+informationsRecette.push(
     `👥 ${portionsOriginales} portion(s)`
-].forEach(info => {
+);
+
+// Afficher les informations
+informationsRecette.forEach(info => {
     infos.appendChild(
         creerElement("span", info)
     );
