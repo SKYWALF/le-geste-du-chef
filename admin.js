@@ -982,3 +982,329 @@ bouton.addEventListener("click", () => {
 
     });
 }
+// ========================================
+// DÉTECTEUR DE PRIX MANQUANTS
+// ========================================
+
+// ==========================================
+// LE GESTE DU CHEF
+// DÉTECTEUR AUTOMATIQUE DE PRIX MANQUANTS
+// ==========================================
+
+async function detecterPrixManquants() {
+
+    const zone = document.getElementById("prixManquants");
+
+    if (!zone) return;
+
+    zone.textContent = "⏳ Analyse des recettes en cours...";
+
+    try {
+
+        // Récupérer toutes les lignes, même au-delà
+        // de la limite de 1000 résultats de Supabase.
+        async function recupererToutesLesLignes(table, colonnes) {
+
+            const lignes = [];
+            const taillePage = 1000;
+            let debut = 0;
+
+            while (true) {
+
+                const { data, error } = await supabaseClient
+                    .from(table)
+                    .select(colonnes)
+                    .range(debut, debut + taillePage - 1);
+
+                if (error) throw error;
+
+                lignes.push(...(data || []));
+
+                if (!data || data.length < taillePage) break;
+
+                debut += taillePage;
+            }
+
+            return lignes;
+        }
+
+        const recettes = await recupererToutesLesLignes(
+            "recettes",
+            "titre, ingredients"
+        );
+
+        const prix = await recupererToutesLesLignes(
+            "prix_ingredients",
+            "ingredient, prix_unitaire, unite, source"
+        );
+
+        // Vérifier que le calculateur est chargé
+        if (typeof window.calculerPrixIngredient !== "function") {
+            throw new Error(
+                "Le fichier calcul-prix.js n'est pas chargé."
+            );
+        }
+
+        // Regrouper les lignes identiques
+        const ingredientsManquants = new Map();
+
+        let nombreIngredients = 0;
+
+        for (const recette of recettes) {
+
+            const ingredients = recette.ingredients;
+
+            if (!Array.isArray(ingredients)) continue;
+
+            for (const ingredient of ingredients) {
+
+                nombreIngredients++;
+
+                const cout = window.calculerPrixIngredient(
+                    ingredient,
+                    prix
+                );
+
+                // Un coût de 0 est valide.
+                if (cout !== null && Number.isFinite(cout)) {
+                    continue;
+                }
+
+                const texte = typeof ingredient === "string"
+                    ? ingredient.trim()
+                    : [
+                        ingredient?.quantite,
+                        ingredient?.unite,
+                        ingredient?.nom
+                    ].filter(v => v != null).join(" ").trim();
+
+                if (!texte) continue;
+
+                const cle = texte
+                    .toLowerCase()
+                    .normalize("NFD")
+                    .replace(/[\u0300-\u036f]/g, "")
+                    .replace(/\s+/g, " ")
+                    .trim();
+
+                if (!ingredientsManquants.has(cle)) {
+
+                    ingredientsManquants.set(cle, {
+                        nom: texte,
+                        recettes: new Set()
+                    });
+
+                }
+
+                ingredientsManquants
+                    .get(cle)
+                    .recettes
+                    .add(recette.titre || "Recette sans titre");
+
+            }
+        }
+
+        zone.replaceChildren();
+
+        // Résumé
+        const titre = document.createElement("h3");
+
+        titre.textContent =
+            "💰 Analyse des prix des ingrédients";
+
+        zone.appendChild(titre);
+
+        const resume = document.createElement("p");
+
+        resume.textContent =
+            `${recettes.length} recettes analysées — ` +
+            `${nombreIngredients} lignes d'ingrédients — ` +
+            `${ingredientsManquants.size} lignes à vérifier.`;
+
+        zone.appendChild(resume);
+
+        if (ingredientsManquants.size === 0) {
+
+            const succes = document.createElement("p");
+
+            succes.textContent =
+                "✅ Tous les ingrédients ont un coût calculable !";
+
+            zone.appendChild(succes);
+
+            return;
+        }
+
+        const explication = document.createElement("p");
+
+        explication.textContent =
+            "Les lignes ci-dessous peuvent correspondre à un prix " +
+            "manquant, une unité incompatible ou un format non reconnu.";
+
+        zone.appendChild(explication);
+
+        // Afficher chaque ingrédient
+        for (const element of ingredientsManquants.values()) {
+
+            const bloc = document.createElement("div");
+
+            bloc.style.padding = "15px";
+            bloc.style.marginBottom = "10px";
+            bloc.style.border = "1px solid #ddd";
+            bloc.style.borderRadius = "8px";
+
+            const nom = document.createElement("strong");
+
+            nom.textContent = "❌ " + element.nom;
+
+            bloc.appendChild(nom);
+
+            const recettesConcernees = document.createElement("p");
+
+            recettesConcernees.textContent =
+                "📖 Recettes : " +
+                [...element.recettes].join(", ");
+
+            bloc.appendChild(recettesConcernees);
+
+            const bouton = document.createElement("button");
+
+            bouton.type = "button";
+            bouton.textContent = "💰 Renseigner le prix";
+
+            bouton.addEventListener("click", () => {
+
+                const formulaire = document.getElementById("prixForm");
+
+                if (!formulaire) {
+                    alert("Formulaire des prix introuvable.");
+                    return;
+                }
+
+                formulaire.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center"
+                });
+
+                // L'utilisateur pourra renseigner
+                // le nom, l'unité et le prix dans
+                // le formulaire existant.
+
+            });
+
+            bloc.appendChild(bouton);
+
+            zone.appendChild(bloc);
+        }
+
+    } catch (erreur) {
+
+        console.error(
+            "Erreur du détecteur de prix :",
+            erreur
+        );
+
+        zone.textContent =
+            "❌ Erreur : " + erreur.message;
+    }
+}
+  const zone = document.getElementById("prixManquants");
+
+  if (!zone) return;
+
+  zone.textContent = "⏳ Analyse des ingrédients...";
+
+  try {
+
+    // Récupérer les recettes
+    const { data: recettes, error: erreurRecettes } =
+      await supabaseClient
+        .from("recettes")
+        .select("ingredients");
+
+    if (erreurRecettes) throw erreurRecettes;
+
+    // Récupérer les prix existants
+    const { data: prix, error: erreurPrix } =
+      await supabaseClient
+        .from("prix_ingredients")
+        .select("ingredient");
+
+    if (erreurPrix) throw erreurPrix;
+
+    const normaliser = (texte) =>
+      String(texte)
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+    const prixExistants = new Set(
+      (prix || []).map(p => normaliser(p.ingredient))
+    );
+
+    const ingredientsManquants = new Map();
+
+    for (const recette of recettes || []) {
+
+      const ingredients = recette.ingredients;
+
+      if (!Array.isArray(ingredients)) continue;
+
+      for (const ligne of ingredients) {
+
+        if (typeof ligne !== "string") continue;
+
+        const ingredient = ligne.trim();
+
+        if (!ingredient) continue;
+
+        const cle = normaliser(ingredient);
+
+        if (!prixExistants.has(cle)) {
+          ingredientsManquants.set(cle, ingredient);
+        }
+
+      }
+
+    }
+
+    zone.replaceChildren();
+
+    const titre = document.createElement("h3");
+    titre.textContent =
+      `💰 ${ingredientsManquants.size} ingrédient(s) à vérifier`;
+
+    zone.appendChild(titre);
+
+    for (const ingredient of ingredientsManquants.values()) {
+
+      const ligne = document.createElement("p");
+      ligne.textContent = "❌ " + ingredient;
+
+      zone.appendChild(ligne);
+
+    }
+
+    if (ingredientsManquants.size === 0) {
+      const message = document.createElement("p");
+      message.textContent = "✅ Aucun prix manquant détecté.";
+      zone.appendChild(message);
+    }
+
+  } catch (erreur) {
+
+    console.error(erreur);
+
+    zone.textContent =
+      "❌ Erreur : " + erreur.message;
+
+  }
+
+// ==========================================
+// ACTIVER LE DÉTECTEUR DE PRIX MANQUANTS
+// ==========================================
+
+document
+    .getElementById("analyserPrixManquants")
+    ?.addEventListener("click", detecterPrixManquants);
