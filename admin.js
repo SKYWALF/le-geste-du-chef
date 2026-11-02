@@ -768,6 +768,51 @@ carte.appendChild(nom);
 carte.appendChild(prix);
 carte.appendChild(source);
 carte.appendChild(boutonModifier);
+// Bouton Supprimer un ingrédient
+const boutonSupprimerPrix = document.createElement("button");
+
+boutonSupprimerPrix.type = "button";
+boutonSupprimerPrix.textContent = "🗑️ Supprimer";
+
+boutonSupprimerPrix.style.cssText = `
+    margin-top: 10px;
+    padding: 10px;
+    background: #c0392b;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+`;
+
+boutonSupprimerPrix.addEventListener("click", async () => {
+
+    const confirmation = confirm(
+        `Voulez-vous supprimer "${produit.ingredient}" ?`
+    );
+
+    if (!confirmation) return;
+
+    boutonSupprimerPrix.disabled = true;
+
+    const { data, error } = await supabaseClient
+        .from("prix_ingredients")
+        .delete()
+        .eq("ingredient", produit.ingredient)
+        .select("ingredient");
+
+    if (error || !data || data.length !== 1) {
+        alert(
+            "❌ Suppression impossible : " +
+            (error?.message || "Vérifie les autorisations Supabase.")
+        );
+        boutonSupprimerPrix.disabled = false;
+        return;
+    }
+
+    await afficherListePrix();
+});
+
+carte.appendChild(boutonSupprimerPrix);
 
 liste.appendChild(carte);
 
