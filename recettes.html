@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="description" content="Toutes les recettes du Geste du Chef"><title>Toutes les recettes | Le Geste du Chef</title><link rel="stylesheet" href="style.css"></head>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="description" content="Toutes les recettes du Geste du Chef"><title>Toutes les recettes | Le Geste du Chef</title><link rel="stylesheet" href="style.css"><style>
+.filtres-recettes{display:flex;flex-wrap:wrap;gap:12px;margin:20px 0 18px}
+.filtre-recette{background:#fff;color:#23201d;border:1px solid #e9e4db;border-radius:999px;padding:11px 18px;font:600 14px 'DM Sans',Arial,sans-serif;cursor:pointer;transition:background .2s,color .2s,border-color .2s}
+.filtre-recette:hover,.filtre-recette.actif{background:#ad7a12;color:#fff;border-color:#ad7a12}
+.filtre-recette:focus-visible{outline:3px solid #ad7a12;outline-offset:3px}
+@media(max-width:560px){.filtres-recettes{gap:8px}.filtre-recette{padding:10px 13px;font-size:13px}}
+</style></head>
 <body data-page="catalogue">
     <header class="top">
 
@@ -44,7 +50,65 @@
 
     </nav>
 <main><section class="catalogue-intro"><p class="eyebrow">LE GESTE DU CHEF</p><h1>Toutes nos recettes</h1><p>Retrouvez toutes les recettes, leurs photos et leurs préparations. Utilisez la recherche pour trouver votre prochain plat.</p></section>
-<section class="wrap" id="recettes"><div class="sectionHead"><h2>Les recettes</h2></div><p id="resultInfo" class="muted" aria-live="polite"></p><div class="cards" id="recipeGrid"></div></section></main>
+<section class="wrap" id="recettes"><div class="sectionHead"><h2>Les recettes</h2></div><div class="filtres-recettes" role="group" aria-label="Filtrer les recettes par catégorie">
+<button type="button" class="filtre-recette actif" data-filtre="toutes" aria-pressed="true">📖 Toutes</button>
+<button type="button" class="filtre-recette" data-filtre="entree" aria-pressed="false">🥗 Entrées</button>
+<button type="button" class="filtre-recette" data-filtre="plat" aria-pressed="false">🍖 Plats</button>
+<button type="button" class="filtre-recette" data-filtre="dessert" aria-pressed="false">🍰 Desserts</button>
+</div><p id="resultInfo" class="muted" aria-live="polite"></p><div class="cards" id="recipeGrid"></div></section></main>
 <footer>© <span id="year"></span> Le Geste du Chef · La cuisine s'apprend, le goût se partage.</footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="script.js" defer></script>
+<script>
+// Filtres facultatifs : toutes les recettes sont visibles par défaut.
+// Fonctionne avec les cartes ajoutées dynamiquement par script.js.
+(() => {
+    const grille = document.getElementById('recipeGrid');
+    const compteur = document.getElementById('resultInfo');
+    const boutons = [...document.querySelectorAll('.filtre-recette')];
+    let filtreActif = 'toutes';
+
+    function normaliser(valeur) {
+        return String(valeur || '').toLowerCase().normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '').trim();
+    }
+
+    function correspond(categorie) {
+        const nom = normaliser(categorie);
+        if (filtreActif === 'toutes') return true;
+        if (filtreActif === 'entree') return nom.includes('entree');
+        if (filtreActif === 'plat') return nom.includes('plat');
+        if (filtreActif === 'dessert') return nom.includes('dessert');
+        return true;
+    }
+
+    function appliquerFiltre() {
+        const cartes = [...grille.querySelectorAll('.card')];
+        let visibles = 0;
+        cartes.forEach(carte => {
+            const categorie = carte.querySelector('.cardBody > .muted')?.textContent || '';
+            const afficher = correspond(categorie);
+            carte.hidden = !afficher;
+            carte.style.display = afficher ? '' : 'none';
+            if (afficher) visibles++;
+        });
+        if (cartes.length) {
+            compteur.textContent = `${visibles} recette${visibles > 1 ? 's' : ''} disponible${visibles > 1 ? 's' : ''}`;
+        }
+    }
+
+    boutons.forEach(bouton => bouton.addEventListener('click', () => {
+        filtreActif = bouton.dataset.filtre;
+        boutons.forEach(item => {
+            const actif = item === bouton;
+            item.classList.toggle('actif', actif);
+            item.setAttribute('aria-pressed', String(actif));
+        });
+        appliquerFiltre();
+    }));
+
+    // Réappliquer le filtre quand la recherche ou Supabase recharge les cartes.
+    new MutationObserver(appliquerFiltre).observe(grille, {childList:true});
+    appliquerFiltre();
+})();
+</script>
 </body></html>
