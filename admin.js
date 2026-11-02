@@ -238,13 +238,17 @@ if (recette.publie) {
         }
 
         // Appeler la fonction Supabase
-        const { data, error } =
-            await supabaseClient.functions.invoke(
-                "actualiser-prix",
-                {
-                    body: {}
-                }
-            );
+const { data, error } =
+    await supabaseClient.functions.invoke(
+        "actualiser-prix",
+        {
+            body: {},
+            headers: {
+                Authorization:
+                    "Bearer " + sessionData.session.access_token
+            }
+        }
+    );
 
         if (error) {
             throw error;
