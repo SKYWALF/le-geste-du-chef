@@ -656,6 +656,15 @@ prixForm.reset();
 
 // Actualiser automatiquement la liste des prix
 await afficherListePrix();
+// Actualiser automatiquement les prix manquants
+const zonePrixManquants = document.getElementById("prixManquants");
+
+if (
+    zonePrixManquants &&
+    zonePrixManquants.textContent.trim() !== ""
+) {
+    await detecterPrixManquants();
+}
 
 // Actualiser le coût de la recette après l'enregistrement d'un prix
 const boutonVerification = document.getElementById("verifierPrixRecette");
