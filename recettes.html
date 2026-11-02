@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="description" content="Toutes les recettes du Geste du Chef"><title>Toutes les recettes | Le Geste du Chef</title><link rel="stylesheet" href="style.css"></head>
+<body data-page="catalogue">
+    <header class="top">
+
+        <a class="logo" href="index.html">
+            ♨ Le Geste du Chef
+            <small>RECETTES · TECHNIQUES · ASTUCES</small>
+        </a>
+
+        <form id="searchForm" role="search">
+
+            <input
+                id="search"
+                type="search"
+                placeholder="Rechercher une recette..."
+                aria-label="Rechercher une recette"
+            >
+
+            <button type="submit">
+                Rechercher
+            </button>
+
+        </form>
+<!-- Bouton Administration -->
+<button
+    id="boutonAdministration" onclick="sessionStorage.setItem('ouvrirAdminAccueil','1');location.href='index.html'"
+    type="button"
+    style="display: none;"
+>
+    ⚙️ Administration
+</button>
+    </header>
+    <nav aria-label="Navigation principale">
+
+        <a href="recettes.html">Recettes</a>
+
+        <a href="index.html#techniques">Techniques</a>
+
+        <a href="index.html#budget">Petit budget</a>
+
+        <a href="index.html#outils">Outils</a>
+
+    </nav>
+<main><section class="catalogue-intro"><p class="eyebrow">LE GESTE DU CHEF</p><h1>Toutes nos recettes</h1><p>Retrouvez toutes les recettes, leurs photos et leurs préparations. Utilisez la recherche pour trouver votre prochain plat.</p></section>
+<section class="wrap" id="recettes"><div class="sectionHead"><h2>Les recettes</h2></div><p id="resultInfo" class="muted" aria-live="polite"></p><div class="cards" id="recipeGrid"></div></section></main>
+<footer>© <span id="year"></span> Le Geste du Chef · La cuisine s'apprend, le goût se partage.</footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="script.js" defer></script>
+</body></html>

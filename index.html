@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 
-<body>
+<body data-page="accueil">
 
     <!-- ========================= -->
     <!-- EN-TÊTE DU SITE -->
@@ -60,7 +60,7 @@
 
     <nav aria-label="Navigation principale">
 
-        <a href="#recettes">Recettes</a>
+        <a href="recettes.html">Recettes</a>
 
         <a href="#techniques">Techniques</a>
 
@@ -124,7 +124,7 @@
                     pour cuisiner avec plaisir.
                 </p>
 
-                <a class="button" href="#recettes">
+                <a class="button" href="recettes.html">
                     Découvrir les recettes →
                 </a>
 
@@ -163,6 +163,7 @@
                 id="recipeGrid"
             ></div>
 
+            <p style="text-align:center;margin-top:28px"><a class="button" href="recettes.html">Voir toutes les recettes →</a></p>
         </section>
 
 
@@ -317,6 +318,10 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
+    if (sessionStorage.getItem("ouvrirAdminAccueil") === "1") {
+        sessionStorage.removeItem("ouvrirAdminAccueil");
+        boutonAdmin.click();
+    }
 });
 </script>
 </body>

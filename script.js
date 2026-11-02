@@ -63,7 +63,13 @@ async function chargerRecettes() {
         image: recette.image_url || "images/creme.jpg"
     }));
 
-    showRecipes();
+    if (document.body.dataset.page === "catalogue") {
+        const q = new URLSearchParams(location.search).get("q") || "";
+        if (searchInput) searchInput.value = q;
+        showRecipes(q);
+    } else {
+        showRecipes();
+    }
 }
 
 // 4. AFFICHAGE DES RECETTES
@@ -71,7 +77,7 @@ async function chargerRecettes() {
 function showRecipes(query = "") {
     const recherche = query.trim().toLocaleLowerCase("fr");
 
-    const items = recipes.filter(recette => {
+    let items = recipes.filter(recette => {
         const texte = [
             recette.title,
             recette.category,
@@ -81,10 +87,15 @@ function showRecipes(query = "") {
         return texte.includes(recherche);
     });
 
+    if (document.body.dataset.page !== "catalogue") {
+        items = [...items].sort(() => Math.random() - 0.5).slice(0, 3);
+    }
+
     grid.replaceChildren();
 
-    resultInfo.textContent =
-        `${items.length} recette${items.length > 1 ? "s" : ""} disponible${items.length > 1 ? "s" : ""}`;
+    resultInfo.textContent = document.body.dataset.page === "catalogue"
+        ? `${items.length} recette${items.length > 1 ? "s" : ""} disponible${items.length > 1 ? "s" : ""}`
+        : `${recipes.length} recettes disponibles · 3 à découvrir`;
 
     if (items.length === 0) {
         const message = document.createElement("p");
@@ -162,11 +173,11 @@ function showRecipes(query = "") {
 searchForm.addEventListener("submit", event => {
     event.preventDefault();
 
-    showRecipes(searchInput.value);
-
-    document.getElementById("recettes").scrollIntoView({
-        behavior: "smooth"
-    });
+    if (document.body.dataset.page === "catalogue") {
+        showRecipes(searchInput.value);
+    } else {
+        window.location.href = `recettes.html?q=${encodeURIComponent(searchInput.value.trim())}`;
+    }
 });
 
 // ==========================================
@@ -335,6 +346,7 @@ const manquants = ingredientsRecette.filter(ingredient =>
 }
 
 // Activer le bouton
+if (chercherRecettes && ingredientsFrigo && resultatsFrigo) {
 chercherRecettes.addEventListener("click", rechercherDansFrigo);
 
 // Activer la touche Entrée
@@ -344,10 +356,11 @@ ingredientsFrigo.addEventListener("keydown", event => {
         rechercherDansFrigo();
     }
 });
+}
 
 // 8. ANNÉE AUTOMATIQUE
 
-document.getElementById("year").textContent =
+if (document.getElementById("year")) document.getElementById("year").textContent =
     new Date().getFullYear();
 
 // 9. INITIALISATION
