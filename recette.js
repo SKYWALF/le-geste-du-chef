@@ -329,18 +329,19 @@ async function chargerRecette() {
     const { data: recette, error } =
         await supabaseClient
             .from("recettes")
-            .select(`
-                id,
-                titre,
-                description,
-                categorie,
-                temps_preparation,
-                temps_cuisson,
-                portions,
-                ingredients,
-                etapes,
-                image_url
-            `)
+.select(`
+    id,
+    titre,
+    description,
+    categorie,
+    temps_preparation,
+    temps_cuisson,
+    temps_repos,
+    portions,
+    ingredients,
+    etapes,
+    image_url
+`)
             .eq("id", recetteId)
             .eq("publie", true)
             .maybeSingle();
