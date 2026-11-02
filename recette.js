@@ -433,6 +433,8 @@ async function chargerRecette() {
         Number(recette.temps_cuisson) || 0;
         // Temps de repos facultatif
 const repos = Number(recette.temps_repos) || 0;
+console.log("TEST TEMPS DE REPOS :", recette.temps_repos);
+console.log("REPOS CALCULÉ :", repos);
 
     const portionsOriginales = Math.max(
         1,
