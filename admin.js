@@ -1000,6 +1000,11 @@ bouton.addEventListener("click", () => {
 // DÉTECTEUR AUTOMATIQUE DE PRIX MANQUANTS
 // ==========================================
 
+// ==========================================
+// LE GESTE DU CHEF
+// DÉTECTEUR INTELLIGENT DES PRIX MANQUANTS
+// ==========================================
+
 async function detecterPrixManquants() {
 
     const zone = document.getElementById("prixManquants");
@@ -1010,8 +1015,7 @@ async function detecterPrixManquants() {
 
     try {
 
-        // Récupérer toutes les lignes, même au-delà
-        // de la limite de 1000 résultats de Supabase.
+        // Récupérer toutes les données avec pagination
         async function recupererToutesLesLignes(table, colonnes) {
 
             const lignes = [];
@@ -1047,25 +1051,100 @@ async function detecterPrixManquants() {
             "ingredient, prix_unitaire, unite, source"
         );
 
-        // Vérifier que le calculateur est chargé
         if (typeof window.calculerPrixIngredient !== "function") {
             throw new Error(
                 "Le fichier calcul-prix.js n'est pas chargé."
             );
         }
 
-        // Regrouper les lignes identiques
+        // Normaliser les noms
+        function normaliser(nom) {
+
+            return String(nom || "")
+                .toLowerCase()
+                .replace(/œ/g, "oe")
+                .replace(/æ/g, "ae")
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/[’']/g, "'")
+                .replace(/\s+/g, " ")
+                .trim();
+        }
+
+        // Extraire quantité, unité et nom
+        function extraireIngredient(ingredient) {
+
+            const texte = typeof ingredient === "string"
+                ? ingredient.trim()
+                : [
+                    ingredient?.quantite,
+                    ingredient?.unite,
+                    ingredient?.nom
+                ].filter(v => v != null).join(" ").trim();
+
+            if (!texte) return null;
+
+            // Ingrédients avec unité
+            const resultat = normaliser(texte).match(
+                /^(\d+(?:[.,]\d+)?)\s*(kg|mg|g|ml|cl|l|pieces?|unites?|gousses?)\s+(?:de\s+|du\s+|d[' ])?(.+)$/i
+            );
+
+            if (resultat) {
+
+                const unite = resultat[2].toLowerCase();
+                const nom = resultat[3].trim();
+
+                let unitePrix = "unité";
+
+                if (["kg", "mg", "g"].includes(unite)) {
+                    unitePrix = "kg";
+                } else if (["ml", "cl", "l"].includes(unite)) {
+                    unitePrix = "L";
+                } else if (/gousses?/.test(unite)) {
+                    unitePrix = "gousse";
+                }
+
+                return {
+                    nom,
+                    unitePrix,
+                    texte
+                };
+            }
+
+            // Exemple : 3 œufs, 2 oignons
+            const sansUnite = normaliser(texte).match(
+                /^(\d+(?:[.,]\d+)?)\s+(.+)$/
+            );
+
+            if (sansUnite) {
+
+                return {
+                    nom: sansUnite[2].trim(),
+                    unitePrix: "unité",
+                    texte,
+                    formatSpecial: true
+                };
+            }
+
+            return {
+                nom: texte,
+                unitePrix: "unité",
+                texte,
+                formatSpecial: true
+            };
+        }
+
+        // Regrouper les ingrédients
         const ingredientsManquants = new Map();
 
         let nombreIngredients = 0;
+        let lignesAProbleme = 0;
 
         for (const recette of recettes) {
 
-            const ingredients = recette.ingredients;
+            if (!Array.isArray(recette.ingredients)) continue;
 
-            if (!Array.isArray(ingredients)) continue;
-
-            for (const ingredient of ingredients) {
+            for (const ingredient of recette.ingredients) {
 
                 nombreIngredients++;
 
@@ -1074,63 +1153,71 @@ async function detecterPrixManquants() {
                     prix
                 );
 
-                // Un coût de 0 est valide.
                 if (cout !== null && Number.isFinite(cout)) {
                     continue;
                 }
 
-                const texte = typeof ingredient === "string"
-                    ? ingredient.trim()
-                    : [
-                        ingredient?.quantite,
-                        ingredient?.unite,
-                        ingredient?.nom
-                    ].filter(v => v != null).join(" ").trim();
+                lignesAProbleme++;
 
-                if (!texte) continue;
+                const resultat = extraireIngredient(ingredient);
 
-                const cle = texte
-                    .toLowerCase()
-                    .normalize("NFD")
-                    .replace(/[\u0300-\u036f]/g, "")
-                    .replace(/\s+/g, " ")
-                    .trim();
+                if (!resultat) continue;
+
+                // Regrouper les pluriels simples comme
+                // oignons / oignon et oeufs / oeuf
+                const cleNom = typeof simplifierNomPrix === "function"
+                    ? simplifierNomPrix(resultat.nom)
+                    : normaliser(resultat.nom);
+
+                const cle = cleNom + "|" + resultat.unitePrix;
 
                 if (!ingredientsManquants.has(cle)) {
 
                     ingredientsManquants.set(cle, {
-                        nom: texte,
-                        recettes: new Set()
+                        nom: resultat.nom,
+                        unite: resultat.unitePrix,
+                        recettes: new Set(),
+                        exemples: new Set(),
+                        formatSpecial: resultat.formatSpecial || false
                     });
-
                 }
 
-                ingredientsManquants
-                    .get(cle)
-                    .recettes
-                    .add(recette.titre || "Recette sans titre");
+                const element = ingredientsManquants.get(cle);
+
+                element.recettes.add(
+                    recette.titre || "Recette sans titre"
+                );
+
+                element.exemples.add(resultat.texte);
 
             }
         }
 
         zone.replaceChildren();
 
-        // Résumé
+        // Titre
         const titre = document.createElement("h3");
-
-        titre.textContent =
-            "💰 Analyse des prix des ingrédients";
-
+        titre.textContent = "💰 Analyse des prix des ingrédients";
         zone.appendChild(titre);
 
+        // Résumé
         const resume = document.createElement("p");
 
         resume.textContent =
             `${recettes.length} recettes analysées — ` +
             `${nombreIngredients} lignes d'ingrédients — ` +
-            `${ingredientsManquants.size} lignes à vérifier.`;
+            `${lignesAProbleme} lignes à vérifier — ` +
+            `${ingredientsManquants.size} ingrédients regroupés.`;
 
         zone.appendChild(resume);
+
+        const explication = document.createElement("p");
+
+        explication.textContent =
+            "Ces ingrédients nécessitent une vérification : " +
+            "prix absent, unité incompatible ou format non reconnu.";
+
+        zone.appendChild(explication);
 
         if (ingredientsManquants.size === 0) {
 
@@ -1144,16 +1231,14 @@ async function detecterPrixManquants() {
             return;
         }
 
-        const explication = document.createElement("p");
+        // Trier par nom
+        const elements = [...ingredientsManquants.values()]
+            .sort((a, b) =>
+                a.nom.localeCompare(b.nom, "fr")
+            );
 
-        explication.textContent =
-            "Les lignes ci-dessous peuvent correspondre à un prix " +
-            "manquant, une unité incompatible ou un format non reconnu.";
-
-        zone.appendChild(explication);
-
-        // Afficher chaque ingrédient
-        for (const element of ingredientsManquants.values()) {
+        // Afficher les ingrédients regroupés
+        for (const element of elements) {
 
             const bloc = document.createElement("div");
 
@@ -1162,12 +1247,31 @@ async function detecterPrixManquants() {
             bloc.style.border = "1px solid #ddd";
             bloc.style.borderRadius = "8px";
 
-            const nom = document.createElement("strong");
+            // Nom
+            const nom = document.createElement("h4");
 
             nom.textContent = "❌ " + element.nom;
 
             bloc.appendChild(nom);
 
+            // Unité
+            const unite = document.createElement("p");
+
+            unite.textContent =
+                "📏 Unité de prix proposée : " + element.unite;
+
+            bloc.appendChild(unite);
+
+            // Quantités rencontrées
+            const exemples = document.createElement("p");
+
+            exemples.textContent =
+                "🥣 Exemples : " +
+                [...element.exemples].slice(0, 5).join(", ");
+
+            bloc.appendChild(exemples);
+
+            // Recettes concernées
             const recettesConcernees = document.createElement("p");
 
             recettesConcernees.textContent =
@@ -1176,80 +1280,65 @@ async function detecterPrixManquants() {
 
             bloc.appendChild(recettesConcernees);
 
+            // Avertissement si format spécial
+            if (element.formatSpecial) {
+
+                const avertissement = document.createElement("p");
+
+                avertissement.textContent =
+                    "⚠️ Format à vérifier : le calculateur " +
+                    "ne reconnaît peut-être pas cette écriture.";
+
+                bloc.appendChild(avertissement);
+            }
+
+            // Bouton
             const bouton = document.createElement("button");
 
             bouton.type = "button";
             bouton.textContent = "💰 Renseigner le prix";
 
-bouton.addEventListener("click", () => {
+            bouton.addEventListener("click", () => {
 
-    const formulaire = document.getElementById("prixForm");
+                const formulaire =
+                    document.getElementById("prixForm");
 
-    const champNom = document.getElementById("nomIngredient");
-    const champPrix = document.getElementById("prixIngredient");
-    const champUnite = document.getElementById("uniteIngredient");
+                const champNom =
+                    document.getElementById("nomIngredient");
 
-    if (!formulaire || !champNom || !champPrix || !champUnite) {
-        alert("Impossible de trouver le formulaire des prix.");
-        return;
-    }
+                const champPrix =
+                    document.getElementById("prixIngredient");
 
-    // Extraire le nom de l'ingrédient
-    const texte = element.nom.trim();
+                const champUnite =
+                    document.getElementById("uniteIngredient");
 
-    const resultat = texte.match(
-        /^\d+(?:[.,]\d+)?\s*(kg|mg|g|ml|cl|l|pièces?|unités?|gousses?)\s+(?:de\s+|du\s+|d['’])?(.+)$/i
-    );
+                if (
+                    !formulaire ||
+                    !champNom ||
+                    !champPrix ||
+                    !champUnite
+                ) {
+                    alert("Formulaire des prix introuvable.");
+                    return;
+                }
 
-    if (!resultat) {
-        alert(
-            "Format non reconnu. Vérifie manuellement le nom et l'unité."
-        );
+                // Préremplir le formulaire
+                champNom.value = element.nom;
 
-        champNom.value = texte;
-        champPrix.value = "";
+                champUnite.value = element.unite;
 
-        formulaire.scrollIntoView({
-            behavior: "smooth",
-            block: "center"
-        });
+                // Ne jamais inventer un prix
+                champPrix.value = "";
 
-        champNom.focus();
-        return;
-    }
+                // Faire défiler
+                formulaire.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center"
+                });
 
-    const uniteRecette = resultat[1].toLowerCase();
+                champPrix.focus();
 
-    const nom = resultat[2].trim();
-
-    // Remplir automatiquement le nom
-    champNom.value = nom;
-
-    // Sélectionner l'unité de prix
-    if (["kg", "mg", "g"].includes(uniteRecette)) {
-        champUnite.value = "kg";
-    } else if (["ml", "cl", "l"].includes(uniteRecette)) {
-        champUnite.value = "L";
-    } else if (/gousses?/.test(uniteRecette)) {
-        champUnite.value = "gousse";
-    } else {
-        champUnite.value = "unité";
-    }
-
-    // Laisser le prix vide pour éviter
-    // d'enregistrer une valeur incorrecte
-    champPrix.value = "";
-
-    // Faire défiler vers le formulaire
-    formulaire.scrollIntoView({
-        behavior: "smooth",
-        block: "center"
-    });
-
-    champPrix.focus();
-
-});
-
+            });
 
             bloc.appendChild(bouton);
 
@@ -1267,7 +1356,6 @@ bouton.addEventListener("click", () => {
             "❌ Erreur : " + erreur.message;
     }
 }
-
 
 // ==========================================
 // ACTIVER LE DÉTECTEUR DE PRIX MANQUANTS
