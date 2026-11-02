@@ -1364,3 +1364,29 @@ async function detecterPrixManquants() {
 document
     .getElementById("analyserPrixManquants")
     ?.addEventListener("click", detecterPrixManquants);
+    // ==========================================
+// TEST DE LA FONCTION AUTOMATIQUE DES PRIX
+// ==========================================
+
+window.testerActualisationPrix = async function () {
+    try {
+        const { data, error } =
+            await supabaseClient.functions.invoke("actualiser-prix", {
+                body: {}
+            });
+
+        if (error) {
+            console.error("Erreur de la fonction :", error);
+            alert("Erreur lors du test. Consulte la console.");
+            return;
+        }
+
+        console.log("Réponse de la fonction :", data);
+
+        alert(data.message || data.erreur || "Test terminé");
+
+    } catch (erreur) {
+        console.error(erreur);
+        alert("Erreur pendant le test.");
+    }
+};
