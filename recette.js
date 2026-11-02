@@ -57,7 +57,35 @@ function creerElement(balise, texte, classe = "") {
 
     return element;
 }
+// ==========================================
+// CONVERTIR LES MINUTES EN HEURES
+// ==========================================
 
+function formaterDuree(valeur) {
+
+    if (valeur === null || valeur === undefined || valeur === "") {
+        return "Non renseigné";
+    }
+
+    const total = Math.round(Number(valeur));
+
+    if (!Number.isFinite(total) || total < 0) {
+        return "Non renseigné";
+    }
+
+    const heures = Math.floor(total / 60);
+    const minutes = total % 60;
+
+    if (heures === 0) {
+        return `${minutes} min`;
+    }
+
+    if (minutes === 0) {
+        return `${heures} h`;
+    }
+
+    return `${heures} h ${minutes} min`;
+}
 // ==========================================
 // 5. TRANSFORMER UN INGRÉDIENT EN TEXTE
 // ==========================================
@@ -409,17 +437,16 @@ async function chargerRecette() {
         Math.round(Number(recette.portions) || 1)
     );
 
-    [
-        `🍽️ ${recette.categorie || "Cuisine"}`,
-        `🔪 Préparation : ${preparation} min`,
-        `🔥 Cuisson : ${cuisson} min`,
-        `👥 ${portionsOriginales} portion(s)`
-    ].forEach(info => {
-
-        infos.appendChild(
-            creerElement("span", info)
-        );
-    });
+[
+    `🍽️ ${recette.categorie || "Cuisine"}`,
+    `🥄 Préparation : ${formaterDuree(preparation)}`,
+    `🔥 Cuisson : ${formaterDuree(cuisson)}`,
+    `👥 ${portionsOriginales} portion(s)`
+].forEach(info => {
+    infos.appendChild(
+        creerElement("span", info)
+    );
+});
 
     // ======================================
     // 15. SÉLECTEUR DE PORTIONS
