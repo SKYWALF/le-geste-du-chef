@@ -489,12 +489,35 @@ minimumPortions = Math.min(
 
     nombrePortions.step = "1";
 
-    nombrePortions.value = portionsOriginales;
+nombrePortions.value = Math.max(
+    minimumPortions,
+    portionsOriginales
+);
+    // ==========================================
+// AFFICHER LE NOMBRE MINIMUM DE PERSONNES
+// ==========================================
 
-    selecteurPortions.append(
-        labelPortions,
-        nombrePortions
-    );
+const messageMinimum = document.createElement("p");
+
+messageMinimum.textContent =
+    `🍽️ Cette recette nécessite un minimum de ${minimumPortions} personne${minimumPortions > 1 ? "s" : ""}.`;
+
+messageMinimum.style.cssText = `
+    margin-top: 12px;
+    padding: 14px 18px;
+    background: #eef7ee;
+    border-left: 4px solid #4c956c;
+    border-radius: 8px;
+    color: #286140;
+    font-size: 15px;
+    font-weight: 600;
+`;
+
+   selecteurPortions.append(
+    labelPortions,
+    nombrePortions,
+    messageMinimum
+);
     // ==========================================
 // AVERTISSEMENT SUR LES PROPORTIONS
 // ==========================================
