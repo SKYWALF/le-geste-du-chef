@@ -1172,25 +1172,75 @@ async function detecterPrixManquants() {
             bouton.type = "button";
             bouton.textContent = "💰 Renseigner le prix";
 
-            bouton.addEventListener("click", () => {
+bouton.addEventListener("click", () => {
 
-                const formulaire = document.getElementById("prixForm");
+    const formulaire = document.getElementById("prixForm");
 
-                if (!formulaire) {
-                    alert("Formulaire des prix introuvable.");
-                    return;
-                }
+    const champNom = document.getElementById("nomIngredient");
+    const champPrix = document.getElementById("prixIngredient");
+    const champUnite = document.getElementById("uniteIngredient");
 
-                formulaire.scrollIntoView({
-                    behavior: "smooth",
-                    block: "center"
-                });
+    if (!formulaire || !champNom || !champPrix || !champUnite) {
+        alert("Impossible de trouver le formulaire des prix.");
+        return;
+    }
 
-                // L'utilisateur pourra renseigner
-                // le nom, l'unité et le prix dans
-                // le formulaire existant.
+    // Extraire le nom de l'ingrédient
+    const texte = element.nom.trim();
 
-            });
+    const resultat = texte.match(
+        /^\d+(?:[.,]\d+)?\s*(kg|mg|g|ml|cl|l|pièces?|unités?|gousses?)\s+(?:de\s+|du\s+|d['’])?(.+)$/i
+    );
+
+    if (!resultat) {
+        alert(
+            "Format non reconnu. Vérifie manuellement le nom et l'unité."
+        );
+
+        champNom.value = texte;
+        champPrix.value = "";
+
+        formulaire.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
+
+        champNom.focus();
+        return;
+    }
+
+    const uniteRecette = resultat[1].toLowerCase();
+
+    const nom = resultat[2].trim();
+
+    // Remplir automatiquement le nom
+    champNom.value = nom;
+
+    // Sélectionner l'unité de prix
+    if (["kg", "mg", "g"].includes(uniteRecette)) {
+        champUnite.value = "kg";
+    } else if (["ml", "cl", "l"].includes(uniteRecette)) {
+        champUnite.value = "L";
+    } else if (/gousses?/.test(uniteRecette)) {
+        champUnite.value = "gousse";
+    } else {
+        champUnite.value = "unité";
+    }
+
+    // Laisser le prix vide pour éviter
+    // d'enregistrer une valeur incorrecte
+    champPrix.value = "";
+
+    // Faire défiler vers le formulaire
+    formulaire.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+    });
+
+    champPrix.focus();
+
+});
+
 
             bloc.appendChild(bouton);
 
