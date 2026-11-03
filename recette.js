@@ -370,7 +370,7 @@ async function chargerRecette() {
     // ======================================
     // 14. PRÉPARER LA PAGE
     // ======================================
-
+seoRecette(recette);
     recetteDetail.replaceChildren();
 
     document.title =
@@ -860,3 +860,112 @@ recetteDetail.append(
 // ==========================================
 
 chargerRecette();
+
+/* SEO automatique des recettes */
+
+function seoRecette(recette) {
+  const nom = String(recette.titre || "Recette").trim();
+  const description = String(
+    recette.description ||
+    `Découvrez la recette de ${nom} sur Le Geste du Chef.`
+  ).replace(/\s+/g, " ").slice(0, 160);
+
+  const url = new URL("recette.html", location.origin);
+  url.searchParams.set("id", recette.id);
+
+  document.title = `${nom} : recette maison | Le Geste du Chef`;
+
+  function meta(attribut, cle, valeur) {
+    let element = document.head.querySelector(
+      `meta[${attribut}="${cle}"]`
+    );
+    if (!element) {
+      element = document.createElement("meta");
+      element.setAttribute(attribut, cle);
+      document.head.appendChild(element);
+    }
+    element.content = valeur;
+  }
+
+  meta("name", "description", description);
+  meta("property", "og:title", document.title);
+  meta("property", "og:description", description);
+  meta("property", "og:url", url.href);
+
+  if (recette.image_url) {
+    meta("property", "og:image", recette.image_url);
+  }
+
+  let canonical = document.querySelector('link[rel="canonical"]');
+  if (!canonical) {
+    canonical = document.createElement("link");
+    canonical.rel = "canonical";
+    document.head.appendChild(canonical);
+  }
+  canonical.href = url.href;
+
+  const duree = valeur =>
+    valeur == null || valeur === "" ||
+    !Number.isFinite(Number(valeur)) || Number(valeur) < 0
+      ? undefined
+      : `PT${Math.round(Number(valeur))}M`;
+
+  const etapeTexte = etape =>
+    typeof etape === "string"
+      ? etape
+      : String(etape?.texte || etape?.description || etape?.etape || "");
+
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "Recipe",
+    name: nom,
+    description,
+    url: url.href,
+    author: {
+      "@type": "Organization",
+      name: "Le Geste du Chef"
+    },
+    inLanguage: "fr-FR",
+    recipeIngredient: Array.isArray(recette.ingredients)
+      ? recette.ingredients.map(texteIngredient).filter(Boolean)
+      : [],
+    recipeInstructions: Array.isArray(recette.etapes)
+      ? recette.etapes.map(etapeTexte).filter(Boolean)
+          .map(text => ({ "@type": "HowToStep", text }))
+      : []
+  };
+
+  if (recette.image_url) schema.image = [recette.image_url];
+  if (recette.categorie) schema.recipeCategory = recette.categorie;
+  if (Number(recette.portions) > 0) {
+    schema.recipeYield = `${recette.portions} portions`;
+  }
+
+  const prep = duree(recette.temps_preparation);
+  const cuisson = duree(recette.temps_cuisson);
+
+  if (prep) schema.prepTime = prep;
+  if (cuisson) schema.cookTime = cuisson;
+
+  const temps = [
+    recette.temps_preparation,
+    recette.temps_cuisson,
+    recette.temps_repos
+  ];
+
+  if (temps.some(v => v != null && v !== "") &&
+      temps.every(v => v == null || v === "" ||
+        (Number.isFinite(Number(v)) && Number(v) >= 0))) {
+    schema.totalTime = duree(
+      temps.reduce((total, v) => total + Number(v || 0), 0)
+    );
+  }
+
+  document.getElementById("seo-recipe-json")?.remove();
+
+  const script = document.createElement("script");
+  script.id = "seo-recipe-json";
+  script.type = "application/ld+json";
+  script.textContent = JSON.stringify(schema).replace(/</g, "\\u003c");
+  document.head.appendChild(script);
+}
