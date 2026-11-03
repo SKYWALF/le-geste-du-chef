@@ -830,9 +830,13 @@ avertissementProportions.style.cssText = `
         creerElement("h2", "Préparation")
     );
 
-    blocPreparation.appendChild(
-        creerListe(recette.etapes, true)
-    );
+const listeEtapes = creerListe(recette.etapes, true);
+
+listeEtapes.querySelectorAll("li").forEach((etape, index) => {
+    etape.id = `etape-${index + 1}`;
+});
+
+blocPreparation.appendChild(listeEtapes);
 
     // ======================================
     // 23. ASSEMBLAGE DE LA PAGE
@@ -929,10 +933,17 @@ function seoRecette(recette) {
     recipeIngredient: Array.isArray(recette.ingredients)
       ? recette.ingredients.map(texteIngredient).filter(Boolean)
       : [],
-    recipeInstructions: Array.isArray(recette.etapes)
-      ? recette.etapes.map(etapeTexte).filter(Boolean)
-          .map(text => ({ "@type": "HowToStep", text }))
-      : []
+recipeInstructions: Array.isArray(recette.etapes)
+  ? recette.etapes
+      .map(etapeTexte)
+      .filter(Boolean)
+      .map((text, index) => ({
+        "@type": "HowToStep",
+        name: `Étape ${index + 1}`,
+        text: text,
+        url: `${url.href}#etape-${index + 1}`
+      }))
+  : []
   };
 
   if (recette.image_url) schema.image = [recette.image_url];
