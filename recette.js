@@ -937,6 +937,14 @@ function seoRecette(recette) {
 
   if (recette.image_url) schema.image = [recette.image_url];
   if (recette.categorie) schema.recipeCategory = recette.categorie;
+  schema.recipeCuisine = "Française";
+
+schema.keywords = [
+    nom,
+    `recette ${nom}`,
+    `${nom} maison`,
+    "cuisine maison"
+].join(", ");
   if (Number(recette.portions) > 0) {
     schema.recipeYield = `${recette.portions} portions`;
   }
