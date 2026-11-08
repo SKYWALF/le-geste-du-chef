@@ -330,6 +330,41 @@ async function afficherRecettes() {
         return;
     }
 
+const categoriesRecettes = {};
+
+["Entrée", "Plat", "Dessert"].forEach(nom => {
+    const details = document.createElement("details");
+    details.style.marginBottom = "12px";
+
+    const summary = document.createElement("summary");
+    summary.style.cssText = `
+        cursor: pointer;
+        padding: 14px;
+        background: #b59458;
+        color: white;
+        border-radius: 8px;
+        font-weight: bold;
+    `;
+
+    const nombre = recettes.filter(r => r.categorie === nom).length;
+
+    const emoji = {
+        "Entrée": "🥗",
+        "Plat": "🍲",
+        "Dessert": "🍰"
+    }[nom];
+
+    summary.textContent = `${emoji} ${nom}s (${nombre})`;
+
+    const contenu = document.createElement("div");
+    contenu.style.marginTop = "12px";
+
+    details.append(summary, contenu);
+    liste.appendChild(details);
+
+    categoriesRecettes[nom] = contenu;
+});
+
     recettes.forEach(recette => {
         const carte = document.createElement("div");
 
@@ -438,7 +473,15 @@ boutonSupprimer.addEventListener("click", async () => {
     boutonPublier,
     boutonSupprimer
 );
-        liste.appendChild(carte);
+  
+const destination = categoriesRecettes[recette.categorie];
+
+if (destination) {
+    destination.appendChild(carte);
+} else {
+    liste.appendChild(carte);
+}
+
     });
 }
 // ==========================================
