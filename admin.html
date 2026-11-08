@@ -761,9 +761,37 @@
         <hr>
 
 
+
+        <!-- COMMANDES DE MENUS PERSONNALISÉS -->
+        <hr>
+        <section id="gestionCommandes" aria-labelledby="titreCommandes">
+            <h3 id="titreCommandes">📦 Commandes clients — Menus sur mesure</h3>
+            <p>Demandes reçues pour le service à 5 €. Une demande ne signifie pas qu'un paiement a été effectué.</p>
+            <button type="button" id="actualiserCommandes">🔄 Actualiser les commandes</button>
+            <p id="messageCommandes" role="status" aria-live="polite"></p>
+            <div id="listeCommandes"></div>
+        </section>
+
         <!-- ==============================
              DÉCONNEXION
         ============================== -->
+
+<hr>
+
+<h3>📦 Gestion des commandes clients</h3>
+
+<p>
+    Consulte les demandes de menus personnalisés
+    reçues depuis ton site.
+</p>
+
+<button type="button" id="voirCommandes">
+    📋 Voir les commandes
+</button>
+
+<div id="listeCommandes" style="margin-top:20px;"></div>
+
+<hr>
 
         <button type="button" id="deconnexion">
             Se déconnecter
@@ -783,6 +811,7 @@
 
 <!-- Administration -->
 <script src="admin.js"></script>
+<script src="commandes-admin.js"></script>
 
 </body>
 
