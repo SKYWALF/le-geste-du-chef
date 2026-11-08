@@ -21,37 +21,14 @@
 .menu-form button{width:100%;padding:14px;margin-top:22px;border:0;border-radius:10px;background:#966d26;color:white;font:700 1rem inherit;cursor:pointer}
 .menu-form button:hover{background:#77531a}.menu-notice{padding:15px;border-radius:10px;background:#fff6e6;margin:18px 0;line-height:1.5}
 .menu-result{margin-top:16px;padding:15px;border-radius:10px;background:#eaf5ec;color:#245b32;display:none}
-/* Correction de l'affichage du formulaire */
-.menu-form form {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: stretch !important;
-  gap: 0 !important;
-}
-
-.menu-form form > * {
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-}
-
-.menu-form input,
-.menu-form select,
-.menu-form textarea {
-  display: block !important;
-  width: 100% !important;
-  min-height: 45px;
-}
-
-.menu-form textarea {
-  min-height: 100px;
-}
-
-.menu-form label {
-  display: block !important;
-  width: 100%;
-}
-
+/* Empêche les règles globales de mettre les champs sur une seule ligne */
+.menu-form form{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:0!important}
+.menu-form form>*{max-width:100%;box-sizing:border-box}
+.menu-form input,.menu-form select,.menu-form textarea{display:block!important;width:100%!important}
+.menu-form input[type="checkbox"]{display:inline-block!important;width:auto!important;margin-right:8px}
+.menu-form .consent-label{display:flex;align-items:flex-start;gap:8px;font-weight:400;line-height:1.5}
+.menu-form .consent-label input{margin-top:5px;flex-shrink:0}
+.menu-form button:disabled{opacity:.6;cursor:wait}
 .menu-form :focus-visible{outline:3px solid #c69a4b;outline-offset:2px}
 </style>
 </head>
@@ -73,8 +50,9 @@
 </section>
 <section class="menu-form" aria-labelledby="form-title">
 <h2 id="form-title">Décrivez votre menu idéal</h2>
-<p>Cette page est une <strong>démonstration</strong> : aucune commande ni aucun paiement ne sont encore possibles.</p>
+<p>Envoyez une <strong>demande de menu</strong> sans paiement. Nous vous recontacterons par e-mail pour confirmer les modalités avant toute commande.</p>
 <form id="demandeMenu">
+<input type="text" name="site_web" id="site_web" autocomplete="off" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px" >
 <label for="convives">Pour combien de personnes ? *</label>
 <input id="convives" name="convives" type="number" min="1" max="30" value="2" required>
 <label for="budget">Budget pour les courses (€) *</label>
@@ -91,20 +69,67 @@
 <div class="menu-notice"><strong>Important :</strong> les informations sur les allergies servent à préparer une proposition de menu, mais ne garantissent pas l'absence de traces d'allergènes dans les produits achetés. Vérifiez toujours les étiquettes.</div>
 <label for="email">Votre adresse e-mail *</label>
 <input id="email" name="email" type="email" autocomplete="email" placeholder="vous@exemple.fr" required>
-<p class="help">En mode démonstration, cette adresse n'est ni enregistrée ni envoyée.</p>
-<button type="submit">Tester le formulaire (sans commander)</button>
+<p class="help">Votre e-mail et les informations du formulaire seront transmis pour traiter votre demande. Ne communiquez aucune donnée médicale détaillée.</p>
+<div class="cf-turnstile" data-sitekey="0x4AAAAAAF4khHzbS--jr96S"></div>
+<label class="consent-label" for="consentement"><input id="consentement" type="checkbox" required> J'accepte que les informations saisies soient utilisées pour répondre à ma demande de menu. Aucun paiement n'est demandé à cette étape.</label>
+<button type="submit" id="envoyerDemande">Envoyer ma demande (sans paiement)</button>
 <div class="menu-result" id="resultat" role="status" aria-live="polite"></div>
 </form>
 </section>
 </main>
 <footer>© <span id="year"></span> Le Geste du Chef</footer>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <script>
 document.getElementById('year').textContent=new Date().getFullYear();
-document.getElementById('demandeMenu').addEventListener('submit',function(e){
- e.preventDefault();
- const result=document.getElementById('resultat');
- result.textContent='Formulaire de démonstration validé ! Aucune demande n’a été envoyée et aucun paiement n’a été effectué.';
- result.style.display='block';
+const form = document.getElementById('demandeMenu');
+const result = document.getElementById('resultat');
+const bouton = document.getElementById('envoyerDemande');
+form.addEventListener('submit', async function(e) {
+  e.preventDefault();
+  result.style.display = 'none';
+  if (!form.reportValidity()) return;
+  const token = document.querySelector('[name="cf-turnstile-response"]')?.value;
+  if (!token) {
+    result.textContent = 'Veuillez terminer la vérification anti-spam.';
+    result.style.display = 'block';
+    return;
+  }
+  bouton.disabled = true;
+  bouton.textContent = 'Envoi en cours…';
+  const data = Object.fromEntries(new FormData(form).entries());
+  const payload = {
+    email: data.email,
+    convives: Number(data.convives),
+    budget: Number(data.budget),
+    occasion: data.occasion,
+    preferences: data.preferences,
+    eviter: data.eviter,
+    allergies: data.allergies,
+    site_web: data.site_web,
+    turnstileToken: token
+  };
+  try {
+    const response = await fetch('https://xlnjmhkuhjqunwvkkykh.supabase.co/functions/v1/creer-commande-menu', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const answer = await response.json();
+    if (!response.ok || !answer.success) throw new Error(answer.error || 'Échec de l’envoi.');
+    result.textContent = 'Votre demande a bien été enregistrée ! Aucun paiement n’a été effectué. Nous vous recontacterons pour la suite.';
+    result.style.background = '#eaf5ec';
+    result.style.color = '#245b32';
+    form.reset();
+  } catch (err) {
+    result.textContent = 'La demande n’a pas pu être envoyée : ' + (err.message || 'réessayez plus tard.');
+    result.style.background = '#fff0ed';
+    result.style.color = '#9b2c22';
+  } finally {
+    result.style.display = 'block';
+    bouton.disabled = false;
+    bouton.textContent = 'Envoyer ma demande (sans paiement)';
+    if (window.turnstile) window.turnstile.reset();
+  }
 });
 </script>
 </body>
