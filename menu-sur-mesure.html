@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Commandez un menu personnalisé : entrée, plat et dessert, avec recettes et liste de courses, pour 5 €. Livraison sous 48 heures après confirmation.">
+<title>Mon Menu sur Mesure – 5 € | Le Geste du Chef</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.menu-page{max-width:1000px;margin:0 auto;padding:40px 20px 75px;color:#29251f}
+.menu-hero{text-align:center;padding:36px 20px;background:#faf6ee;border-radius:20px;margin-bottom:30px}
+.menu-hero h1{font-size:clamp(2rem,5vw,3rem);margin:12px 0}.menu-hero p{max-width:650px;margin:12px auto;line-height:1.6}
+.menu-price{font-size:2.6rem;font-weight:800;color:#946a22}.menu-pill{display:inline-block;background:#eee0c6;border-radius:99px;padding:7px 15px;font-weight:600}
+.menu-features{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin:22px 0 30px}
+.menu-feature{padding:20px;background:#fff;border:1px solid #e8e0d3;border-radius:14px}
+.menu-feature strong{display:block;margin-bottom:8px}
+.menu-form{max-width:760px;margin:auto;padding:28px;background:#fff;border:1px solid #e8e0d3;border-radius:16px}
+.menu-form h2{margin-top:0}.menu-form label{display:block;font-weight:650;margin:18px 0 7px}
+.menu-form input,.menu-form textarea,.menu-form select{box-sizing:border-box;width:100%;padding:12px;border:1px solid #bcb4a7;border-radius:8px;font:inherit;background:white;color:#29251f}
+.menu-form textarea{min-height:95px;resize:vertical}.menu-form .help{font-size:.87rem;color:#625e58;margin:6px 0}
+.menu-form button{width:100%;padding:14px;margin-top:22px;border:0;border-radius:10px;background:#966d26;color:white;font:700 1rem inherit;cursor:pointer}
+.menu-form button:hover{background:#77531a}.menu-notice{padding:15px;border-radius:10px;background:#fff6e6;margin:18px 0;line-height:1.5}
+.menu-result{margin-top:16px;padding:15px;border-radius:10px;background:#eaf5ec;color:#245b32;display:none}
+.menu-form :focus-visible{outline:3px solid #c69a4b;outline-offset:2px}
+</style>
+</head>
+<body>
+<header class="top"><a class="logo" href="index.html">♨ Le Geste du Chef<small>RECETTES · TECHNIQUES · ASTUCES</small></a></header>
+<main class="menu-page">
+<section class="menu-hero">
+<span class="menu-pill">👨‍🍳 Un service personnalisé</span>
+<h1>Mon Menu sur Mesure</h1>
+<p>Vous ne savez pas quoi cuisiner ? Confiez-moi vos envies : je prépare pour vous un repas avec <strong>une entrée, un plat et un dessert</strong>.</p>
+<div class="menu-price">5 €</div>
+<p>Par menu personnalisé · Livraison par e-mail sous <strong>48 heures après confirmation de la commande</strong></p>
+</section>
+<section class="menu-features" aria-label="Ce qui est inclus">
+<div class="menu-feature"><strong>🥗 Entrée + plat + dessert</strong>Un repas adapté à vos goûts.</div>
+<div class="menu-feature"><strong>📖 Recettes détaillées</strong>Des explications pour cuisiner chez vous.</div>
+<div class="menu-feature"><strong>🛒 Liste de courses</strong>Les ingrédients et les quantités nécessaires.</div>
+<div class="menu-feature"><strong>⏱️ Sous 48 heures</strong>Après confirmation de votre commande.</div>
+</section>
+<section class="menu-form" aria-labelledby="form-title">
+<h2 id="form-title">Décrivez votre menu idéal</h2>
+<p>Cette page est une <strong>démonstration</strong> : aucune commande ni aucun paiement ne sont encore possibles.</p>
+<form id="demandeMenu">
+<label for="convives">Pour combien de personnes ? *</label>
+<input id="convives" name="convives" type="number" min="1" max="30" value="2" required>
+<label for="budget">Budget pour les courses (€) *</label>
+<input id="budget" name="budget" type="number" min="1" max="1000" step="1" placeholder="Ex. 30" required>
+<p class="help">Ce budget concerne les ingrédients, en plus du prix du service à 5 €.</p>
+<label for="occasion">Pour quelle occasion ?</label>
+<select id="occasion" name="occasion"><option value="quotidien">Repas du quotidien</option><option value="famille">Repas de famille</option><option value="amis">Repas entre amis</option><option value="fete">Occasion spéciale</option><option value="autre">Autre</option></select>
+<label for="preferences">Vos envies et préférences</label>
+<textarea id="preferences" name="preferences" placeholder="Ex. cuisine traditionnelle, plats rapides, sans viande…"></textarea>
+<label for="eviter">Ingrédients à éviter</label>
+<textarea id="eviter" name="eviter" placeholder="Ex. champignons, fruits de mer…"></textarea>
+<label for="allergies">Allergies ou contraintes alimentaires</label>
+<textarea id="allergies" name="allergies" placeholder="Indiquez les informations importantes pour votre repas."></textarea>
+<div class="menu-notice"><strong>Important :</strong> les informations sur les allergies servent à préparer une proposition de menu, mais ne garantissent pas l'absence de traces d'allergènes dans les produits achetés. Vérifiez toujours les étiquettes.</div>
+<label for="email">Votre adresse e-mail *</label>
+<input id="email" name="email" type="email" autocomplete="email" placeholder="vous@exemple.fr" required>
+<p class="help">En mode démonstration, cette adresse n'est ni enregistrée ni envoyée.</p>
+<button type="submit">Tester le formulaire (sans commander)</button>
+<div class="menu-result" id="resultat" role="status" aria-live="polite"></div>
+</form>
+</section>
+</main>
+<footer>© <span id="year"></span> Le Geste du Chef</footer>
+<script>
+document.getElementById('year').textContent=new Date().getFullYear();
+document.getElementById('demandeMenu').addEventListener('submit',function(e){
+ e.preventDefault();
+ const result=document.getElementById('resultat');
+ result.textContent='Formulaire de démonstration validé ! Aucune demande n’a été envoyée et aucun paiement n’a été effectué.';
+ result.style.display='block';
+});
+</script>
+</body>
+</html>
