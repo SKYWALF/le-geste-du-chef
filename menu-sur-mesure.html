@@ -50,7 +50,7 @@
 </section>
 <section class="menu-form" aria-labelledby="form-title">
 <h2 id="form-title">Décrivez votre menu idéal</h2>
-<p>Envoyez une <strong>demande de menu</strong> sans paiement. Nous vous recontacterons par e-mail pour confirmer les modalités avant toute commande.</p>
+<p>Configurez votre menu et essayez le parcours de paiement <strong>en mode test</strong>. Aucun argent réel ne sera encaissé.</p>
 <form id="demandeMenu">
 <input type="text" name="site_web" id="site_web" autocomplete="off" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px" >
 <label for="convives">Pour combien de personnes ? *</label>
@@ -71,8 +71,8 @@
 <input id="email" name="email" type="email" autocomplete="email" placeholder="vous@exemple.fr" required>
 <p class="help">Votre e-mail et les informations du formulaire seront transmis pour traiter votre demande. Ne communiquez aucune donnée médicale détaillée.</p>
 <div class="cf-turnstile" data-sitekey="0x4AAAAAAF4khHzbS--jr96S"></div>
-<label class="consent-label" for="consentement"><input id="consentement" type="checkbox" required> J'accepte que les informations saisies soient utilisées pour répondre à ma demande de menu. Aucun paiement n'est demandé à cette étape.</label>
-<button type="submit" id="envoyerDemande">Envoyer ma demande (sans paiement)</button>
+<label class="consent-label" for="consentement"><input id="consentement" type="checkbox" required> J'accepte que les informations saisies soient utilisées pour préparer ma demande et ouvrir le paiement de démonstration Stripe. Aucun paiement réel ne sera encaissé.</label>
+<button type="submit" id="envoyerDemande">Continuer vers le paiement test (5 €)</button>
 <div class="menu-result" id="resultat" role="status" aria-live="polite"></div>
 </form>
 </section>
@@ -84,10 +84,20 @@ document.getElementById('year').textContent=new Date().getFullYear();
 const form = document.getElementById('demandeMenu');
 const result = document.getElementById('resultat');
 const bouton = document.getElementById('envoyerDemande');
+const retourPaiement = new URLSearchParams(window.location.search).get('paiement');
+if (retourPaiement === 'retour') {
+  result.textContent = 'Retour de Stripe : la confirmation du paiement est vérifiée séparément. Consultez le statut dans votre espace administrateur.';
+  result.style.display = 'block';
+} else if (retourPaiement === 'annule') {
+  result.textContent = 'Paiement de test annulé. Vous pouvez refaire une demande.';
+  result.style.display = 'block';
+}
+
 form.addEventListener('submit', async function(e) {
   e.preventDefault();
   result.style.display = 'none';
   if (!form.reportValidity()) return;
+  if (document.getElementById('site_web').value) return;
   const token = document.querySelector('[name="cf-turnstile-response"]')?.value;
   if (!token) {
     result.textContent = 'Veuillez terminer la vérification anti-spam.';
@@ -95,7 +105,7 @@ form.addEventListener('submit', async function(e) {
     return;
   }
   bouton.disabled = true;
-  bouton.textContent = 'Envoi en cours…';
+  bouton.textContent = 'Préparation du paiement…';
   const data = Object.fromEntries(new FormData(form).entries());
   const payload = {
     email: data.email,
@@ -115,19 +125,36 @@ form.addEventListener('submit', async function(e) {
       body: JSON.stringify(payload)
     });
     const answer = await response.json();
-    if (!response.ok || !answer.success) throw new Error(answer.error || 'Échec de l’envoi.');
-    result.textContent = 'Votre demande a bien été enregistrée ! Aucun paiement n’a été effectué. Nous vous recontacterons pour la suite.';
+    if (!response.ok || !answer.success || !answer.commandeId || !answer.paiementToken) {
+      throw new Error(answer.error || 'Impossible de créer la commande.');
+    }
+    const paiementResponse = await fetch('https://xlnjmhkuhjqunwvkkykh.supabase.co/functions/v1/creer-paiement-menu', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ commandeId: answer.commandeId, paiementToken: answer.paiementToken })
+    });
+    const paiement = await paiementResponse.json();
+    if (!paiementResponse.ok || typeof paiement.url !== 'string') {
+      throw new Error(paiement.error || 'Impossible de préparer le paiement Stripe.');
+    }
+    const destination = new URL(paiement.url);
+    if (destination.protocol !== 'https:' || destination.hostname !== 'checkout.stripe.com') {
+      throw new Error('Adresse de paiement Stripe invalide.');
+    }
+    result.textContent = 'Redirection vers le paiement Stripe de test…';
     result.style.background = '#eaf5ec';
     result.style.color = '#245b32';
-    form.reset();
+    result.style.display = 'block';
+    window.location.assign(destination.href);
+    return;
   } catch (err) {
-    result.textContent = 'La demande n’a pas pu être envoyée : ' + (err.message || 'réessayez plus tard.');
+    result.textContent = 'Le paiement test n’a pas pu être préparé : ' + (err.message || 'réessayez plus tard.');
     result.style.background = '#fff0ed';
     result.style.color = '#9b2c22';
   } finally {
     result.style.display = 'block';
     bouton.disabled = false;
-    bouton.textContent = 'Envoyer ma demande (sans paiement)';
+    bouton.textContent = 'Continuer vers le paiement test (5 €)';
     if (window.turnstile) window.turnstile.reset();
   }
 });
