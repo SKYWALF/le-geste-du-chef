@@ -133,3 +133,20 @@ body[data-page="accueil"] #recipeGrid {grid-template-columns:repeat(3,minmax(0,1
 .catalogue-intro p {max-width:650px;margin:0 auto;}
 @media(max-width:900px){body[data-page="accueil"] #recipeGrid{grid-template-columns:repeat(2,minmax(0,1fr));}}
 @media(max-width:560px){body[data-page="accueil"] #recipeGrid{grid-template-columns:1fr;}}
+
+.btn-menu-sur-mesure {
+  display: inline-block;
+  padding: 14px 24px;
+  background: #966d26;
+  color: white;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 700;
+  text-align: center;
+  margin: 15px 0;
+  transition: background 0.2s;
+}
+
+.btn-menu-sur-mesure:hover {
+  background: #77531a;
+}
